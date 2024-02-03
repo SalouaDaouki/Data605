@@ -1,0 +1,119 @@
+---
+title: "Dat605 HW"
+output: html_document
+date: "2024-02-02"
+---
+
+```{r}
+install.packages("gifski")
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(animation)
+library(gifski)
+library(gganimate)
+```
+
+## Creating the initials of my name (SD):
+
+### Creating S:
+
+```{r pressure, echo=FALSE}
+x=c(seq(-2,-1,length.out=500), rep(-2,1000), seq(-2,-1,length.out=500), seq(-1,-1,length.out=500), seq(-2,-1,length.out=500))
+y=c(rep(2,500), seq(2,0,length.out=1000), rep(0,500), seq(0,-2,length=500), rep(-2,500))
+z=rbind(x,y)
+plot(y~x, xlim=c(-3,3), ylim=c(-3,3), col='blue')
+```
+
+### Creating D:
+
+```{r}
+x=c(rep(1,1000), seq(1.75,1,length.out=500), seq(1,1,length.out=500), seq(1.75,1,length.out=500), rep(2,500), seq(1.75,2,length.out=500), seq(1.75,2,length.out=500))
+y=c(seq(2,-2,length.out=1000), rep(2,500), seq(0,-2,length=500), rep(-2,500), seq(-1.5,1.5,length.out=500), seq(-2,-1.5,length.out=500), seq(2,1.5,length.out=500))
+z=rbind(x,y)
+plot(y~x, xlim=c(-3,3), ylim=c(-3,3), col='blue')
+```
+### Combining both S and D in one plot
+ 
+```{r}
+x=c(seq(-2,-1,length.out=500), rep(-2,1000), seq(-2,-1,length.out=500), seq(-1,-1,length.out=500), seq(-2,-1,length.out=500), rep(1,1000), seq(1.75,1,length.out=500), seq(1,1,length.out=500), seq(1.75,1,length.out=500), rep(2,500), seq(1.75,2,length.out=500), seq(1.75,2,length.out=500))
+y=c(rep(2,500), seq(2,0,length.out=1000), rep(0,500), seq(0,-2,length=500), rep(-2,500), seq(2,-2,length.out=1000), rep(2,500), seq(0,-2,length=500), rep(-2,500), seq(-1.5,1.5,length.out=500), seq(-2,-1.5,length.out=500), seq(2,1.5,length.out=500))
+z=rbind(x,y)
+plot(y~x, xlim=c(-3,3), ylim=c(-3,3), col='chartreuse3')
+```
+## Left Multiplication of a square matrix:
+
+```{r}
+leftMultiply <- function(x, y) {
+  x %*% y
+}
+identityMatrix= diag(4)
+leftMultiply(matrix(rep(seq(1,4, length.out=4),4), nrow=4, ncol=4), identityMatrix)
+```
+
+## Shearing Transformation:
+
+```{r}
+# record animated plot
+anim = ani.record(reset = TRUE, replay.cur = FALSE)
+# open a new plotting window in R
+x11()
+# shear loop
+for (i in seq(0,1,length.out = 20)) {
+  z_shear <- apply(z,2,function(x)
+    leftMultiply(x,matrix(c(1,i,0,1),nrow=2,ncol=2)))
+  plot(z_shear[2,] ~ z_shear[1,], xlim = c(-3,3), ylim = c(-3,3), 
+       main = "Shear Transformation", ylab = "Y", xlab = "X")
+}
+```
+
+## Scaling Transformation:
+
+```{r}
+# record animated plot
+anim = ani.record(reset = TRUE, replay.cur = FALSE)
+# open a new plotting window in R
+x11()
+# Scale Transformation
+for (i in seq(1,4,length.out = 20)) {
+  z_scale <- apply(z, 2, function(x) leftMultiply(x, matrix(c(i,0,0,i), nrow=2, ncol=2)))
+  plot(z_scale[2,] ~ z_scale[1,], xlim = c(-3,3), ylim = c(-3,3), 
+       main = "Scaling Transformation", ylab = "Y", xlab = "X")
+}
+```
+
+## Rotation Transformation:
+
+```{r}
+# record animated plot
+anim = ani.record(reset = TRUE, replay.cur = FALSE)
+# open a new plotting window in R
+x11()
+# Rotaton loop
+for (i in seq(0, pi*2, length.out=20)) {
+  z_rotation <- apply(z, 2, function(x) leftMultiply(x, matrix(c(cos(i), -sin(i), sin(i), cos(i)), nrow=2, ncol=2)))
+  plot(z_rotation[2,] ~ z_rotation[1,], xlim = c(-3,3), ylim = c(-3,3), 
+       main = "Rotation Transformation", ylab = "Y", xlab = "X")
+}
+```
+
+## Projection Transformation:
+
+```{r}
+# record animated plot
+anim = ani.record(reset = TRUE, replay.cur = FALSE)
+# open a new plotting window in R
+x11()
+# projection loop
+for (i in seq(0, 2*pi, length.out=20)) {
+  z_proj <- rbind(z, rep(0, ncol(z)))
+  z_projection <-apply(z_proj, 2, function(x) leftMultiply(x, matrix(c(1, 0, 0, 0, cos(i), -sin(i), 0, sin(i), cos(i)), nrow=3, ncol=3)))
+  plot(z_projection[2,] ~ z_projection[1,], xlim = c(-3,3), ylim = c(-3,3), 
+       main = "Projection Transformation", ylab = "Y", xlab = "X")
+}
+```
+
+
+
