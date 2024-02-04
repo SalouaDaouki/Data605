@@ -1,0 +1,24 @@
+---
+title: "Week 2Discussion"
+output: html_document
+date: "2024-02-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The excercise to be answered is C26 page 278
+
+```{r}
+# Creating the matrix
+MatrixA <- matrix(c(2, 0, 3, 2, 5, 1, 2, 4, 3, 0, 1, 2, 5, 3, 2, 1), nrow = 4, byrow = TRUE)
+# Calculating the determinant
+Det_A <- det(MatrixA)
+# Printing the determinant value
+print(paste("The determinant of the matrix A is", Det_A))
+```
+
+Here is an image of my work by hand:
+
+[![](Desktop/Data605/IMG_0359.jpg)](https://github.com/SalouaDaouki/Data605/blob/f9c7e65cb1f510d93b5a23d07fab3827fe73bcb5/IMG_0359.jpg)
