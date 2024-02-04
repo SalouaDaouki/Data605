@@ -1,0 +1,65 @@
+---
+title: "Week_2HW_PS2"
+output: html_document
+date: "2024-02-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r }
+# defining the function
+lu_decomposition <- function(A) {
+  n <- nrow(A)
+  
+  # Initialize matrices L and U
+  L <- matrix(0, n, n)
+  U <- matrix(0, n, n)
+  
+  # LU decomposition algorithm
+  for (k in 1:(n-1)) {
+    # U matrix
+    for (j in (k+1):n) {
+      U[k, j] <- A[k, j] - sum(L[k, 1:(k-1)] * U[1:(k-1), j])
+    }
+    
+    # L matrix
+    for (i in k:n) {
+      L[i, k] <- (A[i, k] - sum(L[i, 1:(k-1)] * U[1:(k-1), k])) / U[k, k]
+    }
+  }
+  
+  # Set diagonal elements of L to 1
+  for (i in 1:n) {
+    L[i, i] <- 1
+  }
+  
+  # Return the factorized matrices L and U
+  return(list(L = L, U = U))
+}
+
+# Apply the function on a 3x3 matrix
+A <- matrix(c(2, -1, -2, -4, 6, 3, -4, -1, 8), nrow = 3, byrow = TRUE)
+lu_factorization <- lu_decomposition(A)
+L <- lu_factorization$L
+U <- lu_factorization$U
+# Display the original matrix and the result matrices
+print(A)
+print(L)
+print(U)
+
+
+```
+
+I solved the matrix factorization LU for the above matrix and I found the result showed in the image below:
+
+![LU factorization of matrix A](IMG_0360.jpg){width="371"}
+
+I think there is something with my function that I cannot figure out that makes the elements on either L or U matrix to be inf or -inf and I checked the matrix and I found that is not singular:
+
+```{r}
+Det_A <- det(A)
+print(Det_A)
+```
+

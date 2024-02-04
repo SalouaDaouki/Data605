@@ -1,0 +1,72 @@
+---
+title: "SDaouki_Assignment2PS1"
+output: html_document
+date: "2024-02-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Question #1: Show that** $\ A^T A\neq AA^T$ **in general. (Proof and demonstration.)**\
+To prove that $\ A^T A\neq AA^T$
+
+Let A be a 3x3 matrix:
+
+$A=\begin{bmatrix} a & b & c\\ d & e & f\end{bmatrix}$
+
+And its transpose will be (interchanging the rows and columns of A):
+
+$A^T=\begin{bmatrix} a & d\\ b & e\\ c & f\end{bmatrix}$
+
+Now, let's calculate $A^TA$
+
+$A^TA=\begin{bmatrix} a & d\\ b & e\\ c & f\end{bmatrix}\begin{bmatrix} a & b & c\\ d & e & f\end{bmatrix}$
+
+$A^TA=\begin{bmatrix} a^2+d^2 & ab+de & ac+df\\ba+ed & b^2+e^2 & bc+ef\\ca+fd & cb+fe & c^2+f^2 \end{bmatrix}$
+
+The matrix $A^TA$ is 3x3 matrix (it is the result of (3x2) by (2x3) matrices),
+
+$AA^T=\begin{bmatrix} a & b & c\\ d & e & f\end{bmatrix}\begin{bmatrix} a & d\\ b & e\\ c & f\end{bmatrix}$
+
+$AA^T=\begin{bmatrix} a^2+b^2+c^2 & ad+be+cf\\ da+eb+fc & d^2+e^2+f^2\end{bmatrix}$
+
+while $AA^T$ matrix is 2x2 matrix (the result of (2x3) by (3x2) matrices). And the elements on each result matrix are different, so
+
+$\ A^T A\neq AA^T$				
+
+**Question #2: For a special type of square matrix A, we get** $A^T A = AA^T$ **. Under what conditions could this be true? (Hint: The Identity matrix I is an example of such a matrix).**
+
+Based on the hint, $I^TI= II^T$ , what is special about the identity matrix that makes it have this property?
+
+we know that the transpose of a matrix is obtained by interchanging the rows and the columns of the original matrix, so
+
+Let:
+
+$I=\begin{bmatrix} 1 & 0 & 0\\ 0 & 1 & 0\\0 & 0 & 1\end{bmatrix}$		
+
+the transpose of I is:
+			
+
+$I^T=\begin{bmatrix} 1 & 0 & 0\\ 0 & 1 & 0\\0 & 0 & 1\end{bmatrix}$
+		
+
+Which means the condition that is needed to exist in a matrix is symmetry: $A=A^T$
+
+Let $A=\begin{bmatrix} a & x_1 & x_2\\ x_1 & b & x_3\\ x_2 & x_3 & c\end{bmatrix}$
+	
+The transpose of the above matrix is:
+
+$A^T=\begin{bmatrix} a & x_1 & x_2\\ x_1 & b & x_3\\ x_2 & x_3 & c\end{bmatrix}$
+
+Let's calculate $AA^T$
+
+$AA^T=\begin{bmatrix} a & x_1 & x_2\\ x_1 & b & x_3\\ x_2 & x_3 & c\end{bmatrix}\begin{bmatrix} a & x_1 & x_2\\ x_1 & b & x_3\\ x_2 & x_3 & c\end{bmatrix}$
+
+$AA^T=\begin{bmatrix} a^2+x_1^2+x_2^2 & ax_1+x_1b+x_2x_3 & ax_2+x_1x_3+x_2c\\ x_1a+bx_1+x_3^2 & x_1^2+b^2+x_3^2 & x_1x_2+bx_3+x_3c\\ x_2a+x_3x_1+cx_2 & x_2x_1+x_3b+cx_3 & x_2^2+x_3^2+c^2\end{bmatrix}$
+
+Now, let's calculate $A^TA$
+
+$A^TA=\begin{bmatrix} a^2+x_1^2+x_2^2 & ax_1+x_1b+x_2x_3 & ax_2+x_1x_3+x_2c\\ x_1a+bx_1+x_3^2 & x_1^2+b^2+x_3^2 & x_1x_2+bx_3+x_3c\\ x_2a+x_3x_1+cx_2 & x_2x_1+x_3b+cx_3 & x_2^2+x_3^2+c^2\end{bmatrix}$
+
+Both $AA^T$ and $A^TA$ are 3x3 matrices, and comparing their elements, they are equal, so for symmetric matrices, $AA^T=A^TA$
