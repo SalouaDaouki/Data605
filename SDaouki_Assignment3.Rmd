@@ -1,0 +1,282 @@
+---
+title: "SDaouki_Assignment3"
+Author: "Saloua Daouki"
+output: html_document
+date: "2024-02-10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(pracma)
+library (MASS)
+```
+
+## Problem Set 1
+
+### (1) What is the rank of the matrix A?
+
+$A=\begin{bmatrix} 1 & 2 & 3 & 4\\ -1 & 0 & 1 & 3\\ 0 & 1 & -2 & 1 \\ 5 & 4 & -2 & -3\end{bmatrix}$
+
+First, let's find the reduced row echelon form of the matrix:
+
+```{r}
+A <- matrix(c(1, 2, 3, 4, -1, 0, 1, 3, 0, 1, -2, 1, 5, 4, -2, -3), nrow = 4, byrow = TRUE)
+A
+rref(A)
+```
+
+All four columns of the matrix A are linearly independent; all four columns are pivot columns. So,
+
+$rank(A)=4$
+
+### (2) Given an mxn matrix where m \> n, what can be the maximum rank? The mini- mum rank, assuming that the matrix is non-zero?
+
+$m\times n$ matrix has $m$ rows and $n$ columns, so the number of rows is more than the number of columns.
+
+Since the $rank(A) = dim(C(A))$ which is the dimension of the column space of (A), then the maximum rank is the number of columns of the matrix, namely $n$
+
+For the same reason; there are $n$ columns in the matrix, then the rank cannot be greater than $n$, and also the minimum rank will be the number of linearly independent columns, so the minimum rank is $n$.
+
+Let's use the square matrix A from question (1) as an example to find the minimum and the maximum $rank(A)$.
+
+```{r}
+max_rank <- min(dim(A))
+max_rank
+rref(A)
+```
+
+Based on the reduced row echelon form, there are 4 linearly independent columns, so $min(rank(A))=4$
+
+To demonstrate the $max$ and the $min$ rank, let's use $4\times 5$ matrix Z:
+
+```{r}
+Z <- matrix(c(1, 0, -1, 0, 4, 2, 1, 0, 0, 9, -1, 2, 5, 1, -5, 1, -1, -3, -2, 9), nrow =4, byrow=TRUE)
+Z
+```
+
+```{r}
+max_rank <- min(dim(Z))
+max_rank
+rref(Z)
+```
+
+The number of the pivot columns (linearly independent) is 3 which less than 4. So the minimum rank is less than 4, 3 in this case.
+
+### (3) What is the rank of matrix B?
+
+$B=\begin{bmatrix} 1 & 2 & 1\\ 3 & 6 & 3\\ 2 & 4 & 2 \end{bmatrix}$
+
+We find the $rref(B)$ first:
+
+```{r}
+B <- matrix(c(1, 2, 1 , 3, 6, 3, 2, 4, 2), nrow = 3, byrow = TRUE)
+B
+rref(B)
+```
+
+There is only one pivot column, the first column, so:
+
+$rank(B)=1$
+
+## Problem Set 2:
+
+Compute the eigenvalues and eigenvectors of the matrix $A=\begin{bmatrix}1 &2 & 3\\ 1 & 4 & 5\\ 0 & 0 & 6 \end{bmatrix}$
+
+I will name it $A_1$ because I used matrix A for problem set 1:
+
+```{r}
+A_1 <- matrix(c(1, 2, 3, 0, 4, 5, 0, 0, 6), nrow=3, byrow=TRUE)
+A_1
+```
+
+To compute the eigenvalues and the eigenvectors, we need to find the roots/solution of $det(\lambda I_3 - A)=0$
+
+**First,** let's find the matrix $\lambda I_3 -A$:
+
+$\Rightarrow \lambda I_3 - A = \left(\begin{bmatrix} \lambda & 0 & 0\\ 0 & \lambda & 0\\ 0 & 0 & \lambda\end{bmatrix}-\begin{bmatrix} 1 & 2 & 3\\ 0 & 4 & 5\\ 0 & 0 & 6\end{bmatrix}\right)$
+
+$\Rightarrow det(\lambda I_3 - A)= det\begin{bmatrix} \lambda-1 & -2 & -3\\ 0 & \lambda-4 & -5\\ 0 & 0 & \lambda-6\end{bmatrix}$
+
+$\Rightarrow det(\lambda I_3 - A)= \left(\lambda-1\right) [\left(\lambda -4\right) \left(\lambda - 6\right)]$
+
+$\Rightarrow det(\lambda I_3 - A)= \left(\lambda - 1\right) \left(\lambda^2 - 6 \lambda - 4 \lambda + 24\right)$
+
+$\Rightarrow det(\lambda I_3 - A)= \left(\lambda - 1\right) \left(\lambda^2 - 10 \lambda + 24\right)$
+
+$\Rightarrow det(\lambda I_3 -A) = \lambda^3 - 10 \lambda^2 + 24 \lambda - \lambda^2 + 10 \lambda - 24$
+
+$\Rightarrow det(\lambda I_3 - A) = \lambda^3 - 11 \lambda^2 + 34 \lambda -24$
+
+Let's double check if I get the characteristic polynomial correct, with the following function:
+
+```{r}
+char_poly_1 <- charpoly(A_1)
+char_poly_1
+```
+
+The characteristic polynomial $p(x) = \lambda^3 - 11 \lambda^2 + 34 \lambda - 24$ [$\surd$ \>]{style="color:green;"}
+
+**Second,** let's solve $p(x) = 0$ to find the eigenvalues of matrix $A_1$,
+
+$\lambda^3 -11 \lambda^2 + 34 \lambda - 24 = 0$
+
+In factors form, the characteristic polynomial was; $(\lambda -1)(\lambda -4)(\lambda - 6) = 0$
+
+$\Rightarrow \lambda -1 = 0$ OR $\lambda - 4 = 0$ OR $\lambda - 6 =0$
+
+$\Rightarrow$ The roots of $p(x)$ are:
+
+$\lambda = 1$
+
+$\lambda = 4$
+
+$\lambda = 6$
+
+To make sure that those values are the roots of $p(x)$, we can use this function to compute each of the values of $\lambda$ into the equation $p(x)=0$:
+
+```{r}
+Compute_value <- function(lambda) {
+  value <- lambda^3 - 11*lambda^2 + 34*lambda -24
+  return(value)
+}
+value1 <- Compute_value(1)
+print(value1)
+value2 <- Compute_value (4)
+print(value2)
+value3 <- Compute_value(6)
+print(value3)
+```
+
+So, $\lambda_1 = 1$ , $\lambda_2 = 4$ and $\lambda_3 = 6$ are the eigenvalues for matrix $A_1 = \begin{bmatrix} 1 & 2 & 3\\ 0 & 4 & 5\\ 0 & 0 & 6\end{bmatrix}$
+
+**Now,** let's find the eigenspace ($E_\lambda$), the set of vectors that satisfy the equation:
+
+$A \vec{v} = \lambda \vec{v}$ $\Rightarrow \vec{0} = \lambda \vec{v} - A \vec{v}$ $\Rightarrow \vec{0} = (\lambda I_n - A) \vec{v}$
+
+So, for each $\lambda$, we are going to find the null space(N) of $(\lambda I_n - A)$
+
+$\bigstar$ The eigenpace for $\lambda=1$
+
+$\underline{\lambda = 1}$: $E_1 = N(\lambda I_3 - A)$
+
+$\Rightarrow E_1 = N\left( \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix} - \begin{bmatrix} 1 & 2 & 3 \\ 0 & 4 & 5 \\ 0 & 0 & 6 \end{bmatrix} \right)$
+
+$\Rightarrow E_1 = N \left(\begin{bmatrix} 0 & -2 & -3 \\ 0 & -3 & -5 \\ 0 & 0 & -5 \end{bmatrix} \right)$
+
+$\Rightarrow \begin{bmatrix} 0 & -2 & -3 \\ 0 & -3 & -5 \\ 0 & 0 & -5 \end{bmatrix} \vec{v} = \vec{0}$
+
+Using elementary rows operations on the above matrix, let's find the $rref$;
+
+$\begin{bmatrix} 0 & -2 & -3 \\ 0 & -3 & -5 \\ 0 & 0 & -5 \end{bmatrix}$ $\Rightarrow R_1 \rightarrow -R_2 + R_1$ $\begin{bmatrix} 0 & 1 & 2 \\ 0 & -3 & -5 \\ 0 & 0 & -5 \end{bmatrix}$
+
+$R_2 \rightarrow R_2 +3 R_1 \begin{bmatrix} 0 & 1 & 2 \\ 0 & 0 & 1 \\ 0 & 0 & -5 \end{bmatrix}$
+
+$$
+\begin{array}{cc}
+R_1 \rightarrow R_1 - 2R_2 \\
+R_3 \rightarrow R_3 + 5R_2 \\ 
+\end{array} \Rightarrow \begin{bmatrix} 0 & 1 & 0 \\ 0 & 0 & 1 \\ 0 & 0 & 0 \end{bmatrix}
+$$
+
+Using the R_function $rref()$, let's check our answers:
+
+```{r}
+E_1Matrix <- matrix(c(0, -2, -3, 0, -3, -5, 0, 0, -5), nrow = 3, byrow = TRUE)
+E_1Matrix
+rref(E_1Matrix)
+```
+
+This means that $v_2 = 0$ and $v_3=0$
+
+So, the eigenvectors corresponding to $\lambda = 1$ are any multiple of $\begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}$
+
+$\Rightarrow E_{\lambda=1} = \left\{\begin{bmatrix} v_1 \\ v_2 \\ v_3 \end{bmatrix} = t \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}\right\}$
+
+
+$\bigstar$ The eigenpace for $\lambda=4$
+
+$\underline{\lambda = 4}$: $E_4 = N(\lambda I_3 - A)$
+
+$\Rightarrow E_4 = N\left( \begin{bmatrix} 4 & 0 & 0 \\ 0 & 4 & 0 \\ 0 & 0 & 4 \end{bmatrix} - \begin{bmatrix} 1 & 2 & 3 \\ 0 & 4 & 5 \\ 0 & 0 & 6 \end{bmatrix} \right)$
+
+$\Rightarrow E_4 = N \left(\begin{bmatrix} 3 & -2 & -3 \\ 0 & 0 & -5 \\ 0 & 0 & -2 \end{bmatrix} \right)$
+
+$\Rightarrow \begin{bmatrix} 3 & -2 & -3 \\ 0 & 0 & -5 \\ 0 & 0 & -2 \end{bmatrix} \vec{v} = \vec{0}$
+
+Using elementary rows operations on the above matrix, let's find the $rref$;
+
+$$
+\begin{array}{ccc}
+R_1 \rightarrow \frac{R_1}{3} \\
+R_2 \rightarrow \frac{R_2}{-5} \\
+R_3 \rightarrow \frac{R_3}{-2} \\
+\end{array} \Rightarrow \begin{bmatrix} 1 & \frac{-2}{3} & -1 \\ 0 & 0 & 1 \\ 0 & 0 & 1 \end{bmatrix}
+$$
+$$
+\begin{array}{cc}
+R_1 \rightarrow R_1 + R_2 \\
+R_3 \rightarrow R_3 - R_2 \\
+\end{array} \Rightarrow \begin{bmatrix} 1 & \frac{-2}{3} & 0 \\ 0 & 0 & 1 \\ 0 & 0 & 0 \end{bmatrix}
+$$
+
+
+Using the R_function $rref()$, let's check our answers:
+
+```{r}
+#rref in decimals
+E_4Matrix <- matrix(c(3, -2, -3, 0, 0, -5, 0, 0, -2), nrow = 3, byrow = TRUE)
+E_4Matrix
+rref(E_4Matrix)
+#rref in fractions
+E_4Matrix <- matrix(c(3, -2, -3, 0, 0, -5, 0, 0, -2), nrow = 3, byrow = TRUE)
+fractions(rref(E_4Matrix))
+```
+This means that $v_1 - \frac{2}{3} v_2 =0$ and $V_3 =0$
+
+So, the eigenvectors corresponding to $\lambda = 4$ are any multiple of $\begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}$
+
+$\Rightarrow E_{\lambda=4} = \left\{\begin{bmatrix} v_1 \\ v_2 \\ v_3 \end{bmatrix} = t \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}\right\}$
+
+
+
+$\bigstar$ The eigenpace for $\lambda=6$
+
+$\underline{\lambda = 6}$: $E_6 = N(\lambda I_3 - A)$
+
+$\Rightarrow E_6 = N\left( \begin{bmatrix} 6 & 0 & 0 \\ 0 & 6 & 0 \\ 0 & 0 & 6 \end{bmatrix} - \begin{bmatrix} 1 & 2 & 3 \\ 0 & 4 & 5 \\ 0 & 0 & 6 \end{bmatrix} \right)$
+
+$\Rightarrow E_6 = N \left(\begin{bmatrix} 5 & -2 & -3 \\ 0 & 2 & -5 \\ 0 & 0 & 0 \end{bmatrix} \right)$
+
+$\Rightarrow \begin{bmatrix} 5 & -2 & -3 \\ 0 & 2 & -5 \\ 0 & 0 & 0 \end{bmatrix} \vec{v} = \vec{0}$
+
+Using elementary rows operations on the above matrix, let's find the $rref$;
+
+$$
+\begin{array}{cc}
+R_1 \rightarrow \frac{R_1}{5} \\
+R_2 \rightarrow \frac{R_2}{2} \\
+\end{array} \Rightarrow \begin{bmatrix} 1 & \frac{-2}{5} & \frac{-3}{5} \\ 0 & 1 & \frac{-5}{2} \\ 0 & 0 & 0 \end{bmatrix}
+$$
+$\Rightarrow R_1 \rightarrow R_1 + \frac{2}{5} R_2$  $\Rightarrow \begin{bmatrix} 1 & 0 & \frac{-8}{5} \\ 0 & 1 & \frac{-5}{2} \\ 0 & 0 & 0 \end{bmatrix}$
+
+
+Using the R_function $rref()$, let's check our answers:
+
+```{r}
+#rref in decimals
+E_6Matrix <- matrix(c(5, -2, -3, 0, 2, -5, 0, 0, 0), nrow = 3, byrow = TRUE)
+E_6Matrix
+rref(E_6Matrix)
+#rref in fractions
+E_6Matrix <- matrix(c(5, -2, -3, 0, 2, -5, 0, 0, 0), nrow = 3, byrow = TRUE)
+fractions(rref(E_6Matrix))
+```
+This means that $v_1 - \frac{8}{5} v_3 =0$ and $v_2 - \frac{5}{2} v_3 =0$
+
+$\Rightarrow v_1 = \frac{8}{5} v_3 $ and $v_2 = \frac{5}{2} v_3$
+
+So, the eigenvectors corresponding to $\lambda = 6$ are any multiple of $\begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}$
+
+let $v_3 =t$:
+$\Rightarrow E_{\lambda=6} = \left\{\begin{bmatrix} v_1 \\ v_2 \\ v_3 \end{bmatrix} = t \begin{bmatrix} \frac{8}{5} \\ \frac{5}{2} \\ 1 \end{bmatrix}\right\}$
+
