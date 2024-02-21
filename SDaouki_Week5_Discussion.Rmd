@@ -1,0 +1,210 @@
+---
+title: "SDaouki_Week5_discussion"
+author: "Saloua Daouki"
+date: "2024-02-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## CoinTosses Program 1
+
+This is just a simple coin toss function that prints the number of heads and the number of tails come up depends on the number $n$:
+
+```{r number of H & T}
+# Function to simulate coin tosses
+CoinToss1 <- function(n) {
+  # Generate random coin toss results (0 for tails, 1 for heads)
+  toss_results <- sample(0:1, n, replace = TRUE)
+  
+  # Count the number of heads and tails
+  n_heads <- sum(toss_results == 1)
+  n_tails <- sum(toss_results == 0)
+  
+  # Return the results
+  return(list(heads = n_heads, tails = n_tails))
+}
+
+# Excecute the function:
+n <- 1000
+results <- CoinToss1(n)
+cat("Number of heads:", results$heads, "\n")
+cat("Number of tails:", results$tails, "\n")
+
+```
+
+This function returns a series of H & T depends on the number $n$;
+
+```{r H & T series}
+# Function to simulate coin tosses and return a series of 'H' and 'T'
+CoinToss11 <- function(n1) {
+  # Generate random coin toss results (0 for tails, 1 for heads)
+  toss_results <- sample(0:1, n1, replace = TRUE)
+  
+  # Convert numeric results to characters ('H' for heads, 'T' for tails)
+  toss_series <- ifelse(toss_results == 1, 'H', 'T')
+  
+  # Return the series of 'H' and 'T'
+  return(toss_series)
+}
+
+# Excecute the function:
+n1 <- 10
+toss_series <- CoinToss11(n1)
+cat("Coin toss series:", paste(toss_series, collapse = ' '), "\n")
+```
+
+## CointToss Program 2
+
+```{r}
+# Function to simulate coin tosses and return the proportion of heads minus 1/2 for the entire set
+CoinToss2 <- function(n2) {
+  # Initialize variables to count heads and tails
+  n_H <- 0  # Number of heads obtained
+  n_T <- 0  # Number of tails obtained
+  
+  # Loop through each toss
+  for (i in 1:n2) {
+    # Generate random coin toss results (0 for tails, 1 for heads)
+    toss_result <- sample(0:1, 1)
+    
+    # Update counts
+    n_H <- n_H + toss_result
+    n_T <- n_T + (1 - toss_result)  # Count tails as well
+  }
+  
+  # Calculate proportion of heads minus 1/2 for the entire set
+  proportion <- (n_H / n2) - 0.5
+  
+  # Return the proportion
+  return(proportion)
+}
+
+# Excecute the function:
+n2 <- 150000
+Result <- CoinToss2(n2)
+cat("Proportion of heads minus 1/2 for the entire set:", Result, "\n")
+
+```
+
+I tried more than 10 number for the number of tosses and organized the data into the following table that I converted to a data frame in order to be able to plot the results and visualize the relationship; 
+
+```{r dataframe}
+# Create a list of values
+values_list <- list(
+  n2 = c(200, 300, 800, 1000, 1500, 2000, 5000, 10000, 50000, 100000, 150000),
+  First100Proportion = c(0.04,0.01667,-0.0025,0.004,-0.00667,0.014,-0.0192, -0.0024, 0.00268, 0.00236, 0.00102)
+)
+
+# Convert the list to a data frame
+values_df <- data.frame(values_list)
+
+# Print the data frame
+print(values_df)
+
+```
+
+
+```{r}
+library(ggplot2)
+```
+
+```{r Plot 1 for the first 100 tosses}
+# Create a ggplot 
+Proportion1 <- ggplot(data = values_df, aes(x = n2, y = First100Proportion)) +
+  geom_line(color = "blue") +  # Add a line plot with blue color
+  labs(x = "number of tosses", y = "Proportion of heads minus 1/2", title = "Proportions Vs number of tosses")  # Add axis labels and title
+
+# Display the plot
+print(Proportion1)
+
+```
+
+Based on the table and the line graph above, when the number of tosses is less than 5000, the proportion ranges between 0.04 and -0.00240. In other words, there is no clear pattern whether the proportion getting close to zero or not as the the number of tosses increases. However, when the number of tosses increases after 5000, the proportion gets closer to zero.
+
+
+## CoinToss Program 3
+
+
+```{r}
+# Function to simulate coin tosses and return the proportion of heads minus 1/2 and the number of heads minus half the number of tosses for the entire set
+CoinToss3 <- function(n3) {
+  # Initialize variables to count heads and tails
+  n_H3 <- 0  # Number of heads obtained
+  n_T3 <- 0  # Number of tails obtained
+  
+  # Loop through each toss
+  for (i in 1:n3) {
+    # Generate random coin toss results (0 for tails, 1 for heads)
+    toss_result3 <- sample(0:1, 1)
+    
+    # Update counts
+    n_H3 <- n_H3 + toss_result3
+    n_T3 <- n_T3 + (1 - toss_result3)  # Count tails as well
+  }
+  
+  # Calculate both proportion of heads minus 1/2 and the number of heads minus half the number of tosses
+  proportionH <- (n_H3 / n3) - 0.5
+  numberH <- n_H3 - (n3/2)
+  
+  # Return both values as a list or a data frame
+  return(list(proportion = proportionH, number_heads = numberH))
+}
+
+# Example usage:
+n3 <- 150000
+Result3 <- CoinToss3(n3)
+cat("Proportion of heads minus 1/2 for the entire set:", Result3$proportion, "\n")
+cat("Number of heads minus half the number of tosses:", Result3$number_heads, "\n")
+
+```
+
+
+
+```{r dataframe1}
+# Create a list of values
+values_list1 <- list(
+  n3 = c(200, 300, 800, 1000, 1500, 2000, 5000, 10000, 50000, 100000, 150000),
+  Proportion3 = c(0.055,0.01667,0.0075, 0.003, 0.01333, 0.0075, 0.0028, -0.002, 0.00232, -0.0005, -0.0002 ),
+  NumberOfH = c(11, 5, 6, 3, 20, 15, 14, -20, 116, -50 , -30)
+)
+
+# Convert the list to a data frame
+values_df1 <- data.frame(values_list1)
+
+# Print the data frame
+print(values_df1)
+
+```
+
+
+
+```{r Plot 2 for Proportion3}
+# Create a ggplot 
+Plot2 <- ggplot(data = values_df1, aes(x = n3, y = Proportion3)) +
+  geom_line(color = "darkgreen") +  # Add a line plot with dark green color
+  labs(x = "number of tosses", y = "Proportion of heads minus 1/2", title = "Proportions Vs number of tosses")  # Add axis labels and title
+
+# Display the plot
+print(Plot2)
+
+```
+
+The proportion of heads minus 1/2 gets closer to zero as n increases; we can see it more clearly from the line plot especially when the number of tosses is greater than 2000.
+
+Now let's plot the number of heads minus 1/2 the number of tosses vs the number of tosses;
+
+```{r Plot 3 for Number of heads minus half number of tosses}
+# Create a ggplot 
+Plot3 <- ggplot(data = values_df1, aes(x = n3, y = NumberOfH)) +
+  geom_line(color = "magenta") +  # Add a line plot with dark green color
+  labs(x = "number of tosses", y = "Number of heads minus 1/2 number of tosses", title = "H-(n/2) Vs number of tosses")  # Add axis labels and title
+
+# Display the plot
+print(Plot3)
+
+```
+Based on the table and the graph, it seems that there is a peak in the number of heads minus 1/2 the number of tosses (numberOfH) when the number of tosses is 5000, after that, the numberOfH decreases drastically from 116 to -50. The only smooth decrease in the numberOfH was in the ranges [0,1000] and [1500, 10000].
+
