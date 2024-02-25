@@ -1,0 +1,389 @@
+---
+title: "Week 5 Homework"
+author: "Saloua Daouki"
+date: "2024-02-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1:(Bayesian)
+
+We need to calculate $P(H|E)$ (The probability of an individual has the disease given that the test is poritive) using the Bayes' formula:
+
+$P(H|E) =\frac {P(E|H) \times P(H)}{P(E)}$
+
+H: the event that an individual has the disease
+
+E: the event that the test is positive
+
+$P(H) = 0.001$ (prevalence of the disease)
+
+$P(\neg H) = 1-P(H) = 1-0.001=0.999$ (the probability of not having the disease)
+
+$P(E|H) = 0.96$ (sensitivity)
+
+$P(\neg E| \neg H)=0.98$ (specificity; probability of negative test given that the individual doesn't have the disease)
+
+$P(E|\neg H)=1-0.98=0.02$ (the probability of positive test results given that the individual doesn't have the disease; false positive)
+
+Now we need to calculate $P(E)$; the probability of positive test results
+
+$\Rightarrow P(E) = P(E|H) \times P(H) + P(E| \neg H) \times P(\neg H)$
+
+$\Rightarrow P(E) = (0.96 \times 0.001) + (0.02 \times 0.999) = 0.02094$
+
+Now we can substitute $P(E|H) = 0.96, P(H)=0.001$ and $P(E)=0.02094$ into the Bayes' formula:
+
+
+$\Rightarrow P(H|E) =\frac {P(E|H) \times P(H)}{P(E)}$
+
+$\Rightarrow P(H|E) =\frac {0.96 \times 0.001}{0.02094} = 0.0458 = 4.58\%$
+
+So the probability that an individual who is reported as positive by the new test actually has the disease is $4.58\%$
+
+The cost of treating each individual from the virus is $100,000
+
+The cost of administrating the test is $1000 per person.
+
+$\Rightarrow$ the total cost for testing is $1000 \times 100,000 = \$100,000,000 = \$1 \times 10^8$
+
+To calculate the total cost for treating the individuals who have the disease, we need to calculate the number of individuals who actually sick; based on the probability of individuals who actually have the disease, the number of individuals who need to be treated among those 100,000 is: $4.58\%$ of 100,000 people:
+$0.0458 \times 100,000 = 4580$ individuals.
+
+$\Rightarrow$ the total cost for treating those 4580 individuals is: $4580 \times 100,000 = \$458,000,000 = \$4.58 \times 10^8$
+
+So, the total first-year cost for treating 100,000 individuals is $\$ 4.58 \times 10^8 + \$1 \times 10^8 = \$ 5.58 \times 10^8$
+
+or $558,000,000.
+
+## Exercise 2 (Binomial)
+
+The binomial formula is $P(X=k)= \binom{n}{k} \cdot p^k \cdot (1-p)^{n-k}$
+We are given the following:
+P=0.05, n=24, k=2
+
+```{r the binomial coefficient}
+n_choosek <- factorial(24) / (factorial(2) * factorial(22))
+n_choosek
+```
+
+$\Rightarrow P(X=2) = \binom{24}{2} \cdot 0.05^2 \cdot (1-0.05)^{22}$ 
+
+```{r}
+probability <- round((276 * (0.05)^2 * (1-0.05)^(22))*100,2)
+cat ("The probability to recieve 2 inspections in 24 months is ", probability, "%")
+```
+
+
+Now, we need the find the probability that, after 24 months, you received 2 or more inspections; $P(X \ge 2)$ and the probability that your received fewer than 2 inspections; $P(X<2)$
+
+We can use the distribution function:
+$P(X \ge 2) = 1 - P(X<2)$
+$P(X<2)=P(X=0)+P(X=1)$
+
+Using the binomial formula, we can find $P(X=0)$ and $P(X=1)$
+
+$\Rightarrow P(X=0)=\binom{24}{0} \cdot (0.05)^0 \cdot (1-0.05)^{24}$
+
+$\Rightarrow P(X=1)=\binom{24}{1} \cdot (0.05)^1 \cdot (1-0.05)^{23}$
+
+```{r the binomial coefficient1}
+n_choosek0 <- factorial(24) / (factorial(0) * factorial(24))
+n_choosek1 <- factorial(24) / (factorial(1) * factorial(23))
+n_choosek0
+n_choosek1
+```
+
+Let's calculate the probabilities:
+
+```{r}
+# Probability to receive 0 inspection
+probability0 <- (1 * (0.05)^0 * (1-0.05)^(24)) 
+# Probability to receive 1 inspection
+probability1 <- (24 * (0.05)^1 * (1-0.05)^(23))
+# Probability to receive less than 2 inspections
+Probability_less2 <- probability0 + probability1
+cat("The probability to recieve less than 2 inspections is", Probability_less2*100,"%.\n")
+# Probability to receive 2 or more inspections
+Probability_2_OR_more <- round((1 - Probability_less2)*100, 3)
+cat("The probability that, after 24 months, you received 2 or more inspections is ", Probability_2_OR_more,"%")
+```
+The expected number of inspections to be received over 24 months is: $E(X) = np = 24 * 0.05$
+
+```{r}
+ExpectedI <- 24 * 0.05
+cat("The expected number of inspections to be received is around: ", ExpectedI)
+```
+
+The standard deviation can be found by the formula: $\sqrt {npq}$ where $q=1-p$ $\Rightarrow SD=\sqrt {n*p*(1-p)}$
+
+```{r}
+SD <- sqrt(24*0.05*(1-0.05))
+cat("The standard deviation is", SD)
+```
+
+
+## Exercise 3 (Poisson):
+
+You are modeling the family practice clinic and notice that patients arrive at a rate of 10 per hour. What is the probability that exactly 3 arrive in one hour?
+
+Using Poisson's formula: $P(X=k) = \frac {\lambda^k}{k!} e^{-\lambda}$ we can substitute with $\lambda=10$ (the average rate per hour) and $k=3$ (the number of events)
+
+$\Rightarrow P(X=3) = \frac{10^3}{3!} e^{-10}$
+
+```{r}
+three_patients <- (10^3 / factorial(3)) * exp(-10)
+cat("The probability that exactly 3 arrive in one hour is", three_patients *100, "%" )
+```
+
+The probability that more than 10 arrive in one hour is:
+$P(X>10) = 1- P(X \le 10)$
+
+We can calculate the probability of 10 or fewer patients using the following:
+$P(X \le 10) = \sum_{i=0}^{10} \frac {\lambda^i}{i!} e^{-\lambda}$
+
+```{r}
+# Define parameters
+lambda <- 10  # Average rate per hour
+
+# Initialize sum
+ten_or_fewer <- 0
+
+# Calculate sum of probabilities from 0 to 10
+for (i in 0:10) {
+    prob <- (lambda^i / factorial(i)) * exp(-lambda)  # Probability of getting i events
+    ten_or_fewer <- ten_or_fewer + prob  # Add probability to sum
+}
+
+# Print the result
+cat("The of 10 or fewer pateints in one hour is", ten_or_fewer*100, "%")
+```
+
+Now, we can apply the formula: $P(X>10) = 1- P(X \le 10)$
+
+```{r}
+# the probability that more than 10 patients arrive in one hour
+more_than_ten <- 1- ten_or_fewer
+cat("The probability that more than 10 patients arrive in one hour is", more_than_ten *100, "%")
+```
+
+The expected number of patients to arrive in 8 hours is $E(X) = \lambda * number Of Hours$
+
+```{r}
+Expected_patients <- lambda * 8
+cat("The expected number of patients to arrive in 8 hours is ", Expected_patients)
+```
+
+The standard deviation is: $\sqrt{\lambda}$
+
+```{r}
+Standard_D <- sqrt(lambda)
+cat("The standard deviation is ", Standard_D)
+```
+
+I am not sure about this question :"If there are three family practice providers that can see 24 templated patients each day, what is the percent utilization and what are your recommendations?"
+
+My answer: 
+The percent = (the number of patients seen/ the maximum number of patients)
+
+since there are 3 providers where each one of them can see 24 patients, so the maximum number of patients is $24 \times 3$
+
+```{r}
+24*3
+```
+
+Let's assume that the 3 providers actually saw 60 patients, then the percent will be:
+
+```{r}
+round((60/72)*100,0)
+```
+
+83% is high rate, this wil be too many patients per day, which may lead to not enough time given to each patient or the providers may get overwhelmed, so my recommendations will be either to hire more providers or to not allow walk-ins and give a pre-determined number of appointment depends on the number of patients they can see every day.
+
+## Exercise 4 (Hypergeometric):
+
+The probability formula for Hypergeometric is : 
+$P(X=k) = \frac {\binom{K}{k} \cdot \binom{N-K}{n-k}}{\binom{N}{n}}$
+
+In this case, N=30, K=15, k=5, n=6
+
+If your subordinate acted innocently, what was the
+probability he/she would have selected five nurses for the trips? 
+
+$P(X=5) = \frac {\binom{15}{5} \cdot \binom{30-15}{6-5}}{\binom{30}{6}} = \frac {\binom{15}{5} \cdot \binom{15}{1}}{\binom{30}{6}} $
+
+```{r}
+Five_nurses <- ((factorial(15)/ (factorial(5)*factorial(10))) * (factorial(15 /(factorial(1) * factorial(14))))) / (factorial(30)/(factorial(6)*factorial(24)))
+cat("The probability he/she would have selected five nurses for the trips is", Five_nurses*100, "%")
+```
+
+
+How many nurses would we have expected your subordinate to send?
+
+$E(X)= \frac{n \cdot K}{N} = \frac{6 \times 15}{30}$
+
+```{r}
+Expected_nurses <- (15*6)/30
+cat("The expected number of nurses to be sent to the trip is ", Expected_nurses )
+```
+
+How many non-nurses would we have expected your subordinate to
+send?
+ It will be the same thing as the expected number of nurses since there are 15 nurses and 15 non-nurses:
+ $E(X)= \frac{n \cdot K}{N} = \frac{6 \times 15}{30}$
+
+```{r}
+Expected_NONnurses <- (15*6)/30
+cat("The expected number of non-nurses to be sent to the trip is ", Expected_NONnurses )
+```
+
+
+## Exercise 5 (Geometric):
+
+What is the probability that the driver will be seriously injured during the course of the year? 
+
+This probability is going to be the complement of the probability of not being injured:
+
+$P(\text{not being injured})=(1-0.001)^{1200}$
+
+$P(\text{being injured})= \tilde{P}(\text{not being injured}) = 1-(1-0.001)^{1200}$
+
+```{r}
+cat("The probability that the driver will be seriously injured during the course of the year" , (1-(1-0.001)^(1200))*100, "%")
+```
+
+What is the probability that the driver will be seriously injured during in the course of 15 months?
+
+For this probability, we will use the same idea of complement, the only difference here is the exponent will be $1200 \times \frac{15}{12}$ which indicates 15 months out of one year which is the average here.
+
+```{r}
+cat("The probability that the driver will be seriously injured during the course of 15 months" , 1-(1-0.001)^(1200*(15/12)), "which is " ,(1-(1-0.001)^(1200*(15/12)))*100, "%")
+```
+
+
+What is the expected number of hours that a driver will drive before being seriously injured?
+
+The probability to be seriously injured in that location is about 0.1% = 0.001 per hour, and we are calculating the number of hours, so 
+
+$\#hours = \frac{1}{0.001}$
+
+```{r}
+cat("The expected number of hours that a driver will drive before being seriously injured is ", 1/0.001)
+```
+
+
+Given that a driver has driven 1200 hours, what is the probability that he or she will be injured in the next 100 hours?
+
+Let X= the probability of being injured in the next 100 hours and
+
+E= the event that the driver has driven 1200 hours,
+
+So we are calculating $P(X|E) = 1-(1-0.001)^{100}$
+
+```{r}
+cat("Given that a driver has driven 1200 hours, the probability that he or she will be injured in the next 100 hours is ", (1-((1-0.001)^(100)))*100, "%")
+```
+
+## Exercise 6:
+
+You are working in a hospital that is running off of a primary generator which fails about once in 1000 hours. What is the probability that the generator will fail more than twice in 1000 hours? What is the expected value?
+
+I think will be Poisson distribution: $P(X>2)$
+
+Like we did in exercise 3; $P(X>2) = 1- P(X \le 2)$
+
+Where $P(X \le 2) = \sum_{i=0}^{2} \frac {\lambda^i}{i!} e^{-\lambda}$
+
+```{r}
+# Define parameters
+lambda1 <- 1/1000  # Average rate per 1000 hours
+
+# Initialize sum
+two_or_fewer <- 0
+
+# Calculate sum of probabilities from 0 to 10
+for (i in 0:2) {
+    prob1 <- (lambda1^i / factorial(i)) * exp(-lambda1)  # Probability of getting i events
+    two_or_fewer <- two_or_fewer + prob1  # Add probability to sum
+}
+
+# Print the result
+cat("The probability of 2 or fewer generators in 1000 hours is", two_or_fewer*100, "%")
+```
+
+Now, we can apply the formula: $P(X>2) = 1- P(X \le 2)$
+
+```{r}
+# the probability that more than 2 times the generator will fail in 1000 hours
+more_than_two <- 1- two_or_fewer
+cat("The probability that the generator will fail more than twice in 1000 hours is", more_than_two *100, "%")
+```
+
+The expected value will be simply, $\lambda = 1/1000 = 0.001$
+
+## Exercise 7:
+
+A surgical patient arrives for surgery precisely at a given time. Based on previous analysis (or a lack of knowledge assumption), you know that the waiting time is uniformly distributed from 0 to 30 minutes. What is the probability that this patient will wait more than 10 minutes? If the patient has already waited 10 minutes, what is the probability that he/she will wait at least another 5 minutes prior to being seen? What is the expected waiting time?
+
+This is uniform distribution, so the probability that this patient will wait more than 10 minutes is: the difference in waiting time between 10 and 30 (more than 10 minutes) over the total waiting time (30 minutes):
+
+```{r}
+library(MASS)
+ten_min_wait <- as.fractions((30-10)/30)
+
+cat("the probability that this patient will wait more than 10 minutes is", ten_min_wait)
+```
+
+
+If the patient has already waited 10 minutes, what is the probability that he/she will wait at least another 5 minutes prior to being seen?
+
+In this case we are calculating the probability of waiting 5 more minutes given 10 minutes already passed $P(X>15|X>10)$
+```{r}
+five_more_min <- (30-15)/(30-10)
+cat("the probability that he/she will wait at least another 5 minutes prior to being seen, given that they already waited 10 minutes is ", five_more_min)
+```
+
+
+The expected time will be $\frac{\text{minimum wait time + maximum wait time}}{2} = \frac{30}{2} = 15 \quad\text{minutes}$
+
+
+## Exercise 8 (Exponential):
+
+Your hospital owns an old MRI, which has a manufacturer’s lifetime of about 10 years (expected value). Based on previous studies, we know that the failure of most MRIs obeys an exponential distribution. What is the expected failure time? What is the standard deviation? What is the probability that your MRI will fail after 8 years? Now assume that you have owned the machine for 8 years. Given that you already owned the machine 8 years, what is the probability that it will fail in the next two years?
+
+
+The expected failure time is the expected value; 10 years.
+
+Since this is an exponential distribution, the standard deviation is the same as the mean; so $SD=10$
+
+The probability that the MRI will fail after 8 years (before its lifetime) is $1-P(\text{not failing during the 8 years})$
+
+$P(\text{not failing during the 8 years}) = e^{-\lambda \cdot 8}$ where $\lambda = 1/10$ 
+
+```{r}
+eight_year_fail <- 1- exp((-1/10)*8)
+cat("The probability that the MRI will fail after 8 years is", eight_year_fail)
+```
+
+Given that you already owned the machine 8 years, what is the probability that it will fail in the next two years?
+
+Let X=failure of MRI in the next 2 years and E= the event that the MRI has been owned for 8 years already;
+$P(X|E) = P(\text{failure in next 10 years}) - P(\text{failure in next 8 years})$
+
+We already calculated $P(\text{failure in next 8 years}) = 0.550671$
+$P(\text{failure in next 10 years})= 1- e^{-\lambda \cdot 10} $
+
+```{r}
+ten_year_fail <- 1- exp((-1/10)*10)
+ten_year_fail
+```
+
+```{r}
+Probability2 <- ten_year_fail - eight_year_fail
+cat("Given that you already owned the machine 8 years, the probability that it will fail in the next two years is ", Probability2)
+```
+
+
