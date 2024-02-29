@@ -1,0 +1,90 @@
+---
+title: "Week 6 Discussion"
+author: "Saloua Daouki"
+date: "2024-02-29"
+output:
+  html_document:
+    
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 29 page 154:
+
+"A student is applying to Harvard and Dartmouth. He estimates that he has a probability of .5 of being accepted at Dartmouth and .3 of being accepted at Harvard. He further estimates the probability that he will be accepted by both is .2. What is the probability that he is accepted by Dartmouth if he is accepted by Harvard? Is the event “accepted at Harvard” independent of the event “accepted at Dartmouth”?"
+
+Let H: represent the event that the students will be accepted at Harvard
+
+and D: represent the event that the students will be accepted at Dartmouth
+
+We are given the following:
+
+$P(H) = 0.3$, $P(D) = 0.5$ and $P(H \cap D)=0.2$
+
+And we need to find $P(D|H)$
+
+Using conditional probability, we know that 
+$P(H \cap D) = P(D|H) \times P(H)$
+
+$\Rightarrow P(D|H) = \frac {P(H \cap D)}{P(H)} = \frac{0.2}{0.3} = 0.667$
+
+```{r}
+(0.2/0.3)*100
+```
+
+So, the probability that he is accepted by Dartmouth if he is accepted by Harvard is 66.7%
+
+Now, let's check the indpendency of both events; H and D:
+
+$P(H \cap D)=0.2$ and $P(H) \times P(D) = 0.3 \times 0.5 = 0.15$
+
+```{r}
+0.3*0.5
+```
+
+Since $P(H \cap D) \neq P(H) \times P(D)$, then the event “accepted at Harvard” is dependent of the event “accepted at Dartmouth”.
+
+## Exercise 31 page 154:
+
+"Using the Life Table for 1981 given in Appendix C, find the probability that a male of age 60 in 1981 lives to age 80. Find the same probability for a female"
+
+To find the probability that a male of age 60 in 1981 lives to age 80, we can calculate the probability of living of age in the range $[60,80]$ then multiply them together.
+
+```{r}
+# These were taken from the table of life in appendix C (page502 in prob book) and divided by 100,000 (the total # of people)
+survived_male <- c(0.81485, 0.80194, 0.78803, 0.77314, 0.75729, 0.74051, 0.72280, 0.70414, 0.68445, 0.66364, 0.64164, 0.61847, 0.59419, 0.56885, 0.54249, 0.51519, 0.48704, 0.45816, 0.42867, 0.39872, 0.36848)
+
+# Age group corresponding to age 60 to age 80
+start_age <- 60
+end_age <- 80
+
+# Calculate the probability of living from age 60 to age 80
+probability_survivalM <- prod(survived_male[(start_age - 60):(end_age - 60)])  # I tried "start_age" but the output was NA, the same thing when I added 1, so I am subtracting 60 so the calculation of the probability will start with the first element of the vector survived_male.
+
+# Print the result
+cat("Probability of a male aged 60 in 1981 living to age 80:", probability_survivalM, "\n")
+```
+
+The probability that a male of age 60 in 1981 lives to age 80 is very low; 0.007379557%
+
+Now let's do the same thing for female:
+
+```{r}
+# These were taken from the table of life in appendix C (page502 in prob book) and divided by 100,000 (the total # of people)
+survived_female <- c(0.89835, 0.89033, 0.88162, 0.87223, 0.86216, 0.85141, 0.83995, 0.82772, 0.81465, 0.80064, 0.78562, 0.76953, 0.75234, 0.73400, 0.71499, 0.69376, 0.67178, 0.64851, 0.62391, 0.59796, 0.57062)
+
+# Age group corresponding to age 60 to age 80
+start_age <- 60
+end_age <- 80
+
+# Calculate the probability of living from age 60 to age 80
+probability_survivalF <- prod(survived_female[(start_age - 60):(end_age - 60)]) 
+
+# Print the result
+cat("Probability of a female aged 60 in 1981 living to age 80:", probability_survivalF, "\n")
+```
+
+The probability that a female of age 60 in 1981 lives to age 80 is still low but not lower than male; 0.5510312%
+
