@@ -1,0 +1,311 @@
+---
+title: "SDaouki_Assignment6"
+author: "Saloua Daouki"
+date: "2024-03-01"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1:
+
+A bag contains 5 green and 7 red jellybeans. How many ways can 5 jellybeans be withdrawn from the bag so that the number of green ones withdrawn will be less than 2?
+
+less than 2 green jellybeans; means either 0 or 1 green jellybeans.
+
+[First, 0 green jellybeans:]{.underline}
+
+That means, all 5 jellybeans are red, and there are 7 reds, so:
+
+$\Rightarrow \binom {7}{5}= \frac {7!}{5!2!}$
+
+```{r }
+choose5 <- factorial(7) / (factorial(5) * factorial(2))
+choose5
+```
+
+Let's check our answer using the function choose():
+
+```{r}
+choose(7,5)
+```
+
+[Second, 1 green jellybeans:]{.underline}
+
+to choose the green, we are choosing 1 from the 5 greens: $\Rightarrow \binom {5}{1} = \frac {5!}{1!4!}$
+
+to choose the red, now we are choosing 4 from the 7 reds (since 1 already picked green): $\Rightarrow \binom {7}{4} = \frac {7!}{4!3!}$
+
+Then, we will multiply both values to get the number fo ways we can get 1 green and 4 red jellybeans:
+
+```{r}
+one_green <- choose(5,1)
+four_red <- choose(7,4)
+one_green
+four_red
+oneAndFour <- one_green * four_red
+```
+
+So, there are 21 ways to pick 0 green and 5 red jellybeans and there are 175 ways to pick 1 green and 4 red jellybeans. **Therefore, there are [196]{.underline} ways can 5 jellybeans be withdrawn from the bag so that the number of green ones withdrawn will be less than 2.**
+
+```{r}
+choose5+oneAndFour
+```
+
+## Exercise 2:
+
+A certain congressional committee consists of 14 senators and 13 representatives. How many ways can a subcommittee of 5 be formed if at least 4 of the members must be representatives?
+
+At least 4 are representatives means that either 4 or 5 representatives and 1 or 0 senators respectively.
+
+So $\Rightarrow$ if 4 representatives, then \$ \binom {13}{4} \times \binom {14}{1}\$ if 5 representatives are chosen, then \$ \binom {14}{5} \times \binom {14}{0}\$ Let's calculate these using *choose()* function.
+
+```{r }
+four_rep <- choose(13,4) * choose(14,1)
+five_rep <- choose(13,5) * choose(14,0)
+four_rep
+five_rep
+cat("The number of ways can a subcommittee of 5 be formed if at least 4 of the members must be representatives is", four_rep+five_rep, "\n")
+```
+
+## Exercise 3:
+
+If a coin is tossed 5 times, and then a standard six-sided die is rolled 2 times, and finally a group of three cards are drawn from a standard deck of 52 cards without replacement, how many different outcomes are possible?
+
+The number of outcomes from tossing the coins 5 times is: $2^5$ since there are 2 possible outcomes in each toss.
+
+The number of outcomes from rolling a six-sided die 2 times is : $6^2$ since there are 6 possible outcomes in each roll.
+
+And the number of possible outcomes from withdrawing three cards from 52-deck without replacement is: $\binom {52}{3}$
+
+The number of possible outcomes from all will be the products of all outcomes.
+
+```{r}
+coins <- 2^5
+die <- 6^2
+cards <- choose(52,3)
+coins
+die
+cards
+cat("The possible number of outcomes will be", coins*die*cards, "\n")
+```
+
+## Exercise 4:
+
+3 cards are drawn from a standard deck without replacement. What is the probability that at least one of the cards drawn is a 3? Express your answer as a fraction or a decimal number rounded to four decimal places.
+
+The probability that at least one of the cards drawn is a 3 will be $1-P(\neg 3)$
+
+So, first we will find the $P(\neg 3)$, since there are four 3s, we have 48 cards that are not 3:
+
+$P(\neg 3) = \frac {\binom{48}{3}}{\binom{52}{3}}$
+
+```{r}
+Prob_not3 <- round((choose(48,3))/(choose(52,3)),4)
+Prob_not3
+```
+
+Now, calculating the probability of getting at least one 3:
+
+```{r}
+Prob_of3 <- 1-Prob_not3
+cat("The probability that at least one of the cards drawn is a 3 is ", Prob_of3)
+```
+
+Another way to calculate this probability is to calculate the probability of each case; one 3, two 3s and three 3s then add them together:
+
+```{r }
+# Probability of one 3
+Prob_1_3 <- round((choose(4,1) * choose(48,2))/choose(52,3),4)
+
+# Probability of two 3s
+Prob_2_3 <- round((choose(4,2) * choose(48,1))/choose(52,3),4)
+
+# Probability of three 3s
+Prob_3_3 <- round((choose(4,3) * choose(48,0))/choose(52,3),4)
+
+# Probability of at least one 3
+Probe_atleast3 <- Prob_1_3+Prob_2_3+Prob_3_3
+
+# Printing the probability
+cat("The probability that at least one of the cards drawn is a 3 is ",Probe_atleast3)
+```
+
+YAY! both answers match.
+
+## Exercise 5:
+
+Lorenzo is picking out some movies to rent, and he is primarily interested in documentaries and mysteries. He has narrowed down his selections to 17 documentaries and 14 mysteries.
+
+**Step 1.** How many different combinations of 5 movies can he rent?
+
+The 5 movies he is picking could be all mysteries or all documentaries, so the number of different combinations he can rent is: $\binom {14}{5} + \binom{17}{5}$
+
+```{r}
+Movies_comb <- choose(14,5) + choose(17,5)
+Movies_comb
+```
+
+Lorenzo can rent 8190 different combinations of movies.
+
+**Step 2.** How many different combinations of 5 movies can he rent if he wants at least one mystery?
+
+There are 17 documentaries and 14 mysteries;
+
+we can find that by finding the total number of possible combination for both documentaries and misteries, then subtract from that the number of combinations that Lorenzo gets all documentaries;
+
+```{r}
+# Total number of combinations of both genre of the movies
+BothMovies <- choose(14,5) + choose(17,5)
+
+# Number of combinations with only documentaries
+DocOnly <- choose(17,5)
+
+# Number of combinations with at least one mystery
+AtleastOneMy <- BothMovies-DocOnly
+
+# Displaying the number of combinations with at least one mystery
+cat("The number of combinations of movies that Loranzo can rent if he wants at least one mystery is", AtleastOneMy)
+```
+
+## Exercise 6:
+
+In choosing what music to play at a charity fund raising event, Cory needs to have an equal number of symphonies from Brahms, Haydn, and Mendelssohn. If he is setting up a schedule of the 9 symphonies to be played, and he has 4 Brahms, 104 Haydn, and 17 Mendelssohn symphonies from which to choose, how many different schedules are possible? Express your answer in scientific notation rounding to the hundredths place.
+
+Since Cory needs to have an **equal** number of symphonies and he is setting up for $9$ of them, then he needs to choose $3$ from each option:
+
+$\Rightarrow$ The number of possible schedules he can make is (S):
+
+$\Rightarrow S = \binom{4}{3} \times \binom{104}{3} \times \binom{17}{3}$
+
+Let's calculate the possible outcomes:
+
+```{r}
+# The number of combinations of 3 Brahms
+C3Brahms <- choose(4,3)
+
+# The number of combinations of 3 Haydn
+C3Haydn <- choose(104,3)
+
+# The number of combinations of 3 Mendelssohn
+C3Mendelssohn <- choose(17,3)
+
+# Calculating and displaying the number of possible schedules
+Schedules <- format(C3Brahms*C3Haydn*C3Mendelssohn, scientific = TRUE, digits = 3) #I specified the number of digits to be 3 so I can see the hundredth place, when I sat it up to be 2 the output was 5 instead of 4.95
+cat("The number of possible schedules that Cory can set up for 9 symphonies to be played is ", Schedules, "\n")
+```
+
+$\Rightarrow$ The number of possible schedules that Cory can set up for 9 symphonies to be played is $4.95 \times 10^8 \approx 5 \times 10^8$
+
+## Exercise 7:
+
+An English teacher needs to pick 13 books to put on his reading list for the next school year, and he needs to plan the order in which they should be read. He has narrowed down his choices to 6 novels, 6 plays, 7 poetry books, and 5 nonfiction books.
+
+**Step 1.** If he wants to include no more than 4 nonfiction books, how many different reading schedules are possible? Express your answer in scientific notation rounding to the hundredths place.
+
+There are:
+
+-   6 novels,
+
+-   6 plays,
+
+-   7 poetry books, and
+
+-   5 nonfiction books.
+
+The English teacher is picking $13$ books for the entire year, and he wants to include maximum of 4 nonfiction books, so the total number of possible schedules will be the sum of combinations of nonfiction books $\sum_{i=0}^{4} \binom{5}{i}$ multiplied by the combinations of the remaining books $\binom{6+6+7}{13-i} = \binom{19}{13-i}$ then multiplied by $13!$ since the order of the books to be read matters.
+
+Let's calculate these combinations:
+
+```{r}
+# first, let's initialize the variable for the possible reading schedules to store the number of combinations:
+ReadingSchedules <- 0
+
+# Create the loop to calculate the total combinations of reading nonfiction books:
+for (i in 0:4) {
+  NonfictionB <- choose(5,i)
+  
+  # Calculate the remaining books
+  RemainingB <- 13-i
+  
+  # Calculate the combinations of the remaining books
+  RemainingComb <- choose(6+6+7, RemainingB)
+  
+  # Calculate the total number of possible reading schedules
+  ReadingSchedules <- ReadingSchedules+NonfictionB*RemainingComb*factorial(13)
+}
+
+# Now, let's display the reading schedules in scientific notation rounded to the hundredth place:
+NewReadingSchedule <- format(ReadingSchedules, scientific=TRUE, digits=2)
+cat("The number of possible reading schedules can the English teacher have including maximum of 4 nonfiction books is ", NewReadingSchedule)
+```
+
+Note: I have to initialize the variable of 'total_schedules' and set it to equal zero to calculate the accumulated number of reading schedules where the number of nonfiction books is from 0 to 4. When I didn't initialize the variable, the number of schedules was different ($=4.6\times 10^5$).
+
+**Step 2.** If he wants to include all 6 plays, how many different reading schedules are possible? Express your answer in scientific notation rounding to the hundredths place.
+
+If the teacher is including all 6 plays, then the number of possible reading schedules ($S_1$) is going to be, the number of combination of the non-play books multiplied by $13!$ because he wants to plan the order of the picked list;
+
+$\Rightarrow \binom{6+7+5}{13-6} \times 13! = \binom{18}{7} \times 13!$
+
+```{r}
+# Calculate the number of combinations of non play books
+NonPlayComb <- choose(18,7)
+
+# Calculate and display the total number of possible schedules with 6 non play books
+ReadingSchedules1 <- format(NonPlayComb*factorial(13), scientific = TRUE, digits=3)
+cat("The number of possible reading schedules including all 6 plays is ", ReadingSchedules1)
+```
+
+Which is $=2 \times 10^{14}$
+
+## Exercise 8:
+
+Zane is planting trees along his driveway, and he has 5 sycamores and 5 cypress trees to plant in one row. What is the probability that he randomly plants the trees so that all 5 sycamores are next to each other and all 5 cypress trees are next to each other? Express your answer as a fraction or a decimal number rounded to four decimal places.
+
+The probability to plants each kind of trees are next to each other will be; [the number of possible arrangements of sycamores together + the number of possible arrangements of cypress] divided by the total number of possible arrangements.
+
+$\Rightarrow \frac {5! + 5!}{10!}$
+
+```{r}
+ProbOfTrees <- (factorial(5)+factorial(5))/factorial(10)
+ProbOfTreesF <- format((factorial(5)+factorial(5))/factorial(10), digits = 5)
+PercentOfProb <- round(ProbOfTrees*100, 4)
+cat("The probability that Zane randomly plants the trees so that all 5 sycamores are next to each other and all 5 cypress trees are next to each other is ", ProbOfTreesF, "or ", PercentOfProb , "%")
+```
+
+## Exercise 9:
+
+If you draw a queen or lower from a standard deck of cards, I will pay you \$4. If not, you pay me \$16. (Aces are considered the highest card in the deck.)
+
+**Step 1.** Find the expected value of the proposition. Round your answer to two decimal places. Losses must be expressed as negative values.
+
+There are 11 groups of cards that are queen or lower (queen, jack, 10, 9, 8, 7, 6, 5, 4, 3, and 2). Each group has 4 cards, so the number of the cards that maybe drawn to win is $4 \times 11=44$ cards:
+
+```{r}
+# Probability of drawing a queen or lower (winning)
+ProbWinning <- 44/52
+
+# Probability of loosing (not drawing a queen or lower)
+ProbLoosing <- 1-ProbWinning
+
+# Calculating and displaying the expected value knowing that winning means +$4 and loosing means -$16
+ExpectedValue <- round(((ProbWinning*4) + (ProbLoosing*(-16))),2)
+cat("The Expected value of the proposition is $", ExpectedValue)
+```
+ 
+ Since it is positive then it is wins.
+ 
+**Step 2.** If you played this game 833 times how much would you expect to win or lose? Round your answer to two decimal places. Losses must be expressed as negative values.
+
+Simply multiply the expected value from **step 1** by 833:
+
+```{r}
+NewExpectedValue <- round(ExpectedValue*833,2)
+cat("If you played this game 833 times, you would expect to win $", NewExpectedValue)
+```
+
