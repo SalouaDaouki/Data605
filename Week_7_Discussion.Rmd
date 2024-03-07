@@ -1,0 +1,39 @@
+---
+title: "Week_7_discussion"
+author: "Saloua Daouki"
+date: "2024-03-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 24 Page 200:
+
+When John Kemeny was chair of the Mathematics Department at Dartmouth College, he received an average of **ten letters each day**. On a certain weekday he received no mail and wondered if it was a holiday. To decide this he computed the probability that, **in ten years**, he would have **at least 1 day without any mail.** He assumed that the number of letters he received on a given day has a [Poisson distribution]{.underline}. What probability did he find? Hint: Apply the Poisson distribution twice. First, to find the probability that, in 3000 days, he will have at least 1 day without mail, assuming each year has about 300 days on which mail is delivered.
+
+Given that:
+
+$\lambda = 10$ which is the average of ten letters per day (the mean) and
+
+It is a poisson distribution: $P(X=k) = \frac {\lambda^k}{k!} e^{-\lambda}$
+
+$\Rightarrow$ The probability of receiving no mail on a certain day is $P(X=0) = \frac{10^0}{0!} e^{-10} = e^{-10}$
+
+The probability of receiving mail every day in the next ten years (3000 days) will be:
+
+$\rightarrow$ The probability of receiving some mail on a certain day is the complement of receiving no mail on a certain day: $(1-e^{-10})$
+
+$\rightarrow$ The probability of receiving mail every day for 3000 days is: $(1-e^{-10})^{3000}$
+
+Now, the probability of having at least 1 day without any mail will be the complement of the probability of receiving mail every day in the next 3000 days: $1-(1-e^{-10})^{3000}$
+
+Let's calculate this using R-chunk:
+```{r}
+P_oneDayNoMail <- format(1-((1-exp(-10)))^(3000), digits = 3)
+
+#displaying the results
+cat("The probability of having at least 1 day without any mail in the next 10 years is  ", P_oneDayNoMail)
+```
+
