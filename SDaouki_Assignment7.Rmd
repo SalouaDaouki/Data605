@@ -1,0 +1,144 @@
+---
+title: "SDaouki_Assignment7"
+author: "Saloua Daouki"
+date: "2024-03-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1:
+
+Let X1, X2, . . . , Xn be $n$ ***mutually independent random variables***, each of which is uniformly distributed on the integers from 1 to k. **Let Y denote the minimum of the Xi’s**. Find the distribution of Y.
+
+Step1: The probability of $X_i$ to be greater than a value, let's say $l$, where $1 \leq l < k$ will be the number of outcomes greater than $l$ divided by the total number of outcomes which is $k$. Since there are $n$ independent random variables, then:
+
+$P(X_i > l) = (\frac {k-l}{k})^n$ (1)
+
+Now, to find the probability that the minimum of all $X_i$s (denoted by Y) is equal to $l$ is:
+
+$P(Y=l) = P(Y>l-1) - P(Y>l)$ (2)
+
+Using the equation (1), we can substitute into equation (2):
+
+$P(Y=l) = \left(\frac{k-(l-1)}{k} \right)^n - \left(\frac{k-l}{k} \right)^n$
+
+$\Rightarrow P(Y=1) = \left(\frac{k-l+1}{k} \right)^n - \left(\frac{k-l}{k} \right)^n$
+
+## Exercise 2:
+
+Your organization owns a copier (future lawyers, etc.) or MRI (future doctors). This machine has a manufacturer’s expected lifetime of 10 years. This means that we expect one failure every ten years. (Include the probability statements and R Code for each part.).
+
+a.  What is the probability that the machine will fail after 8 years?. Provide also the expected value and standard deviation. ***Model as a geometric.*** (Hint: the probability is equivalent to not failing during the first 8 years..)
+
+$\Rightarrow$ **The solution**:
+
+The probability that the MRI will fail in any year during the 10 years is $p=\frac{1}{10}$, then the probability of not failing will be $q=1-p = 1-\frac{1}{10}=\frac{9}{10}$
+
+So, $P(\text{not failing during the 8 years}) = q^8 \times p = (\frac{9}{10})^8 \times \frac{1}{10}$
+
+```{r}
+# Define the probability of failure in a given year
+p <- 1 / 10
+# Probability of not failing 
+q <- 9 / 10
+
+# Probability of not failing in 8 years
+P_fail_in_8 <- (q^8) * p
+cat("Probability of not failing during the 8 years is :", P_fail_in_8, "\n")
+```
+
+The expected value (the mean) will be just 10 years, since that is the lifetime of the MRI machine.
+
+The standard deviation is $\sigma = \frac {\sqrt{1-p}}{p}$
+
+```{r}
+SD_value <- sqrt((1 - p) / p^2)
+cat("Standard deviation:", SD_value, "years\n")
+```
+
+
+b. What is the probability that the machine will fail after 8 years?. Provide also the expected value and standard deviation. ***Model as an exponential.***
+
+$\Rightarrow$ **The solution**:
+
+The probability that the MRI will fail after 8 years (before its lifetime) is $1-P(\text{not failing during the 8 years})$
+
+$P(\text{not failing during the 8 years}) = e^{-\lambda \cdot 8}$ where $\lambda = 1/10$ 
+
+```{r}
+eight_year_fail <- 1- exp((-1/10)*8)
+cat("The probability that the MRI will fail after 8 years is", eight_year_fail)
+```
+
+The expected failure time is the expected value; 10 years.
+
+Since this is an exponential distribution, the standard deviation is the same as the mean; so $SD=10$
+
+c. What is the probability that the machine will fail after 8 years?. Provide also the expected value and standard deviation. ***Model as a binomial.** *(Hint: 0 success in 8 years)
+
+$\Rightarrow$ **The solution**:
+
+$\Rightarrow$ The binomial formula is: $P(X=k)=\binom{n}{k} p^k (1-p)^{n-k}$
+Where: $n=8$, $ k=0$ and given the rate of the failure is only once per 10 years, then the $P(\text{failure}) =0.1$ while $P(\text{success}) = 0.9$
+
+Then; $P(\text{failing after 8 years}) = \binom{8}{0} p^0 (1-p)^{8} = \binom{8}{0} (0.9)^0 (0.1)^{8} $
+
+And:  the expected value is: $E=n \times p = 8 \times 0.9$
+
+  The standard deviation is: $\sigma =\sqrt {n \times p \times (1-p)}$
+  
+```{r}
+# Defining the coefficients:
+n <- 8
+k <- 0
+p <- 0.9
+
+# The probability of failing after 8 years
+Fail_after_8years <- (p^0 ) * ((1-p)^8)
+
+# Expected Value
+E_Value <- n * p
+
+# Standard deviation
+StandardV <- (n*p*(1-p))^(1/2)
+
+# Display all values calculated above
+cat ("The probability that the machine will fail after 8 years is ", Fail_after_8years, "\n", "The Expected Value is ", E_Value, "years", "\n", "The standard Deviation is ", StandardV, "years", "\n")
+```
+ 
+d. What is the probability that the machine will fail after 8 years?. Provide also the expected value and standard deviation. ***Model as a Poisson. ***
+
+$\Rightarrow$ **The solution**: 
+
+The Poisson formula is $P(X=k) = \frac{\lambda^k}{k!} e^{-\lambda}$
+
+So, the probability that the machine will fail after 8 years is:
+ $P(\text{failing after 8 years} = 1 - P(\text{not failing in 8 years}))$
+ And $P(\text{not failing in 8 years} = \sum_{k=0}^{8} \frac {\lambda^k}{k!} e^{-\lambda}$
+ 
+The Expected value is $E(X) = \lambda$ and the standard deviation is $\sigma = \sqrt {\lambda}$
+
+```{r}
+# Define average
+lambda <- 8
+
+# Calculate the probability of not failing
+for (i in 0:8) {
+    prob <- (lambda^i / factorial(i)) * exp(-lambda)
+}
+# Probability of failing
+prob_fail <- 1-prob
+cat("Probability of machine failing after 8 years:", prob_fail, "\n")
+
+# Expected value and standard deviation
+ExpectedV <- lambda
+SD_Value1 <- sqrt(lambda)
+cat ("The expected value is ", ExpectedV, "\n" , "The standard Deiviation is ", SD_Value1, "\n")
+```
+      
+      
+      
+      
