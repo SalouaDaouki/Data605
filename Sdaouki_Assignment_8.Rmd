@@ -1,0 +1,149 @@
+---
+title: "SDaouki_Assignment_8"
+author: "Saloua Daouki"
+date: "2024-03-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 11 page 303
+
+***11. A company buys 100 lightbulbs, each of which has an exponential lifetime of 1000 hours. What is the expected time for the first of these bulbs to burn out?***
+
+#### Given:
+
+$n = 100$ lighbulbs
+
+mean = 1000
+
+#### So
+
+$\lambda = \frac{1}{\text{mean}} = \frac{1}{1000}$
+
+And since each of the $100$ lighbulbs has an **exponential lifetime** of $1000$ hours, then the expected time for the first of them to burn out is: (similar to example 6.29 page 275 in the probability text)
+
+$E(\text{Time for the first lightbulb to burn out}) = \frac{1}{100 \lambda} = \frac{1}{100 \cdot \frac{1}{1000}} = \frac{1000}{100} = 10 $ hours.
+
+## Exercise 14 Page 303:
+
+***14. Assume that $X_1$ and $X_2$ are independent random variables, each having an exponential density with parameter $\lambda$. Show that $Z = X_1 − X_2$ has density $fZ(z) = \frac{1}{2} \lambda e^{-\lambda |z|}$***
+
+The convolution theorem is: $fZ(z) = \int_{-\infty}^{\infty} fX_1(x) \cdot fX_2(x+z) dx$
+
+We know that the density function of each of the random variable is:
+
+$fX_1(x_1) = \lambda e^{- \lambda x_1}$
+
+$fX_2 (x_2) = \lambda e^{-\lambda x_2}$
+
+
+Substituting those densities in the convolution theorem:
+
+
+$$
+\begin{align*} 
+f_Z(z) &= \int_{-\infty}^{\infty} \lambda e^{-\lambda x} \cdot \lambda e^{-\lambda (x+z)} dx \\
+f_Z(z) &= \lambda ^2 \int_{-\infty}^{\infty} e^{-\lambda x} \cdot e^{-\lambda (x+z)} dx \\
+f_Z(z) &= \lambda ^2 \int_{-\infty} ^{\infty} e^{- \lambda (2x+z)} dx \\
+f_Z(z) &= \lambda ^2 e^{-\lambda z} \int_{- \infty} ^{\infty} e^{-2 \lambda x} dx \\
+f_Z(z) &= \lambda ^2 e^{-\lambda z} [-\frac{1}{2 \lambda}e^{-2 \lambda x}]_{- \infty} ^{\infty} \\
+f_Z(z) &= \frac{\lambda ^2}{2 \lambda} e^{-\lambda z} [e^{-\infty} - e^{\infty}] \\
+
+f_Z(z) &= \frac{\lambda}{2} e^{-\lambda z} (0-0) \\
+f_Z(z) &= \frac{\lambda}{2} e^{-\lambda z} \\
+f_Z(z) &= \frac{1}{2} \lambda e^{- \lambda |z|}
+\end{align*}
+$$
+
+Since $e^{-\lambda z}$ doesn't have $x$ and the integration with respect to x, then $e^{-\lambda z}$ is considered as a constant, so we can take it out of the integral.
+
+
+## Exercise 1 Page 320-321
+
+***Let $X$ be a continuous random variable with mean $\mu = 10$ and variance $\sigma ^2 = 100/3$. Using Chebyshev’s Inequality, find an upper bound for the following probabilities.***
+
+(a) $P(|X−10|≥2)$.
+
+(b) $P(|X−10|≥5)$. 
+
+(c) $P(|X−10|≥9)$.
+
+(d) $P(|X − 10| ≥ 20)$.
+
+
+Chebyshev's Inequality says (page 305):
+
+Let $X$ be a discrete random variable with expected value $\mu = E(X)$, and let $\epsilon > 0$ be any positive real number. Then
+
+$P(|X- \mu | ) \geq  \epsilon ) \leq  \frac{V(X)}{\epsilon ^2}$
+
+So the upper bound that we are looking for is $\frac{V(X)}{\epsilon ^2}$
+
+And we can find the variance using: $V(X) = E((X - \mu)^2)$
+
+But in this case $V(X)$ is given, which is $V(X)= \sigma ^2 = \frac{100}{3}$
+
+#### (a) $P(|X−10|≥2)$.
+
+Using the example 8.1 page 306 from the probability text,
+The upper bound will be $\frac{1}{k^2}$ where in this case there 2 standard deviations. And $\epsilon = k \sigma$ $\Rightarrow k = \frac{\epsilon}{\sigma} = \frac{2}{\sqrt{\frac{100}{3}}} = \frac{2 \sqrt{3}}{10}$
+
+```{r}
+#Setting the parameters:
+k <- (2* sqrt(3)) / 10
+
+#calculate the upper bound
+UpperBound_2 <- format(1/ k^2 , digits=3)
+
+#Displaying the upper bound
+cat("The upper bound of the probability with 2 standard deviations using Chebyshev's Inequality is " , UpperBound_2, "\n")
+```
+
+
+#### (b) $P(|X−10|≥5)$. 
+
+In this case there are 5 standard deviations. And $\epsilon = k \sigma$ $\Rightarrow k = \frac{\epsilon}{\sigma} = \frac{5}{\sqrt{\frac{100}{3}}} = \frac{5 \sqrt{3}}{10}$
+
+```{r}
+#Setting the parameters:
+k <- (5* sqrt(3)) / 10
+
+#calculate the upper bound
+UpperBound_5 <- format(1/ k^2 , digits=3)
+
+#Displaying the upper bound
+cat("The upper bound of the probability with 5 standard deviations using Chebyshev's Inequality is " , UpperBound_5, "\n")
+```
+
+#### (c) $P(|X−10|≥9)$. 
+
+In this case there are 9 standard deviations. And $\epsilon = k \sigma$ $\Rightarrow k = \frac{\epsilon}{\sigma} = \frac{9}{\sqrt{\frac{100}{3}}} = \frac{9 \sqrt{3}}{10}$
+
+```{r}
+#Setting the parameters:
+k <- (9* sqrt(3)) / 10
+
+#calculate the upper bound
+UpperBound_9 <- format(1/ k^2 , digits=3)
+
+#Displaying the upper bound
+cat("The upper bound of the probability with 9 standard deviations using Chebyshev's Inequality is " , UpperBound_9, "\n")
+```
+
+#### (d) $P(|X − 10| ≥ 20)$.
+
+In this case there are 20 standard deviations. And $\epsilon = k \sigma$ $\Rightarrow k = \frac{\epsilon}{\sigma} = \frac{20}{\sqrt{\frac{100}{3}}} = \frac{20 \sqrt{3}}{10}$
+
+```{r}
+#Setting the parameters:
+k <- (20* sqrt(3)) / 10
+
+#calculate the upper bound
+UpperBound_20 <- format(1/ k^2 , digits=3)
+
+#Displaying the upper bound
+cat("The upper bound of the probability with 20 standard deviations using Chebyshev's Inequality is " , UpperBound_20, "\n")
+```
