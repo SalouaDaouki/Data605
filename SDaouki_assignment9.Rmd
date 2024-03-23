@@ -1,0 +1,184 @@
+---
+title: "SDaouki_Assignment_9"
+author: "Saloua Daouki"
+date: "2024-03-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 11 page 363:
+
+***The price of one share of stock in the Pilsdorff Beer Company (see Exer- cise 8.2.12) is given by*** $Y_n$ ***on the nth day of the year. Finn observes that the differences*** $X_n = Y_{n+1} − Y_n$ ***appear to be independent random variables with a common distribution having mean*** $\mu = 0$ ***and variance*** $\sigma^2 = 1/4$. ***If*** $Y_1 = 100$, ***estimate the probability that*** $Y_{365}$ ***is***
+
+(a) $\geq 100$.
+
+(b) $\geq 110$.
+
+(c) $\geq 120$.
+
+***First***, lets' calculate the probability that $Y_{365} \geq 100$:
+
+Given: $X_n = Y_{n+1} − Y_n$ we can solve for $Y_{n+1}$:
+
+$\Rightarrow Y_{n+1} = Y_n + X_n$ which means that if $n+1=365$ then $n=364$.
+
+SO: **The mean of** $Y_{365}$ **is**: $\mu_{(Y_{365})} = Y_1 + n \mu = 100 +364 \times 0 = 100$
+
+**The variance of** $Y_{365}$ **is**: $\sigma^2_{(Y_{365})} = n \sigma^2 = 364 \times \frac{1}{4} = 91$
+
+**The standard deviation of** $Y_{365}$ **is**: $\sigma_{(Y_{365})} = \sqrt{91} \approx 9.54$
+
+Now, we are going to use these values to convert each of the given values (100, 110, and 120) to z-scores $\left(z = \frac{x-\mu}{\sigma}\right)$ and we can use the Normal Distribution Table in Appendix A page 500 from the Probability text.
+
+(a) $x=100$ Then, $\left(z = \frac{100-100}{9.54}\right) = 0$
+
+The value of $0$ is right in the middle of the curve in page 500, that indicates that there is 50% probability of $Y_{365} \geq 100$
+
+(b) ***Second***, lets' calculate the probability that $Y_{365} \geq 110$:
+
+$x=110$ Then, $\left(z = \frac{110-100}{9.54}\right) = 1.05$
+
+Based on the table in page 500 (which shows the area under the curve only between 0 and d), the corresponding value of $1.05$ is $0.3531$ so the probability that $Y_{365} \geq 110$ is: $0.5-0.3531 = 0.1469$ which is about 15%.
+
+(c) ***Third***, lets' calculate the probability that $Y_{365} \geq 120$:
+
+$x=120$ Then, $\left(z = \frac{120-100}{9.54}\right) = 2.10$
+
+Based on the table in page 500, the corresponding value of $2.10$ is $0.4821$ so the probability that $Y_{365} \geq 120$ is: $0.5-0.4821 = 0.0179$ which is about 2%.
+
+Let's check our answers with this R-Code:
+
+```{r }
+# Loading the necessary library
+library(pracma)
+
+# Given data
+Y_1 <- 100
+n <- 364  # As we're computing the difference until the 365th day
+
+# Compute mean and standard deviation of Y_365
+mean_Y_365 <- Y_1
+std_dev_Y_365 <- sqrt(n / 4)
+
+# Function to compute cumulative probability using z-score
+cumulative_probability <- function(mean, std_dev, x) {
+  z_score <- (x - mean) / std_dev
+  return(1 - 0.5 * (1 + erf(z_score / sqrt(2))))
+} #erf() function is to calculate the error function value of the given input; the formula is below this code
+
+# (a) Probability that Y_365 is >= 100
+prob_a <- cumulative_probability(mean_Y_365, std_dev_Y_365, Y_1)
+cat("Probability that Y_365 is >= 100:", prob_a, "\n")
+
+# (b) Probability that Y_365 is >= 110
+prob_b <- cumulative_probability(mean_Y_365, std_dev_Y_365, 110)
+cat("Probability that Y_365 is >= 110:", prob_b, "\n")
+
+# (c) Probability that Y_365 is >= 120
+prob_c <- cumulative_probability(mean_Y_365, std_dev_Y_365, 120)
+cat("Probability that Y_365 is >= 120:", prob_c, "\n")
+
+```
+
+## The error function:
+
+$erf(x) =\frac{2}{\sqrt{\pi}} \int _{0}^{x} e^{-t^2} dt$
+
+## The expected value and variance (Binomial Distribution):
+
+***Calculate the expected value and variance of the binomial distribution using the moment generating function.***
+
+$$
+\begin {align}
+M_x(t) = E(e^{tx}) &= \sum_{x=0}^{n} e^{tx} p(x) \\
+&=\sum_{x=0}^{n} e^{tx} \binom{n}{x} p^x(1-p)^{n-x}
+\end{align}
+$$
+
+so to find the expected value and the variance, we can take the derivatives of MGF where $t=0$:
+
+Since we are calculating for the binomial distribution, The MGF is:
+
+$M_x(t) = (pe^t + q)^n = (pe^t + 1-p)^n$ (Example 10.2 page 367)
+
+**Expected Value:** $E(x) = M'_x(0)$ which is the first moment; we use the chain rule:
+
+$E(x) = M'_x(0) = n(1-p+pe^t)^{n-1} (pe^t) = n \cdot p$
+
+**Variance:** $Var(X) = E(X^2) - (E(X))^2$ is the square of the first moment subtracted from the second moment.
+
+Now, let's calculate the second moment; we use the product rule $(uv)'=u'v+uv'$ and the chain rule $(u^n)' = n(u^{n-1}) \cdot u'$: where:
+
+$u=npe^t$ and $v=(1-p+pe^t)^{n-1}$
+
+$u'=npe^t$ and $v'=(n-1)(1-p+pe^t)^{n-2} \cdot (pe^t)$
+
+$\Rightarrow E(X^2) = M''_x(0) = npe^t \cdot \left((1-p+pe^t)^{n-1}\right) +npe^t \cdot \left( (n-1)(1-p+pe^t)^{n-2} \cdot (pe^t)\right)$
+
+Plug in the $t=0$, we get: $M''_x(0)= n \cdot p (1-p+np)$
+
+$$
+\begin{align}
+\Rightarrow Var(X) &= E(X^2) - (E(X))^2 \\
+&= n \cdot p (1-p+np) - (n \cdot p)^2\\
+&=np(1-p+np-np)\\
+&=np(1-p)
+\end{align}
+$$
+
+
+## The expected value and variance (Exponential Distribution):
+
+***Calculate the expected value and variance of the exponential distribution using the moment generating function.***
+
+$$
+\begin {align}
+M_x(t) = E(e^{tx}) &=\int_0^\infty e^{tx} \lambda e^{- \lambda x} dx \\
+&= \int_0^\infty \lambda e^{(t-\lambda)x} dx \\
+&=\frac{\lambda}{\lambda - t}
+\end{align}
+$$
+
+**Expected Value:** $E(x) = M'_x(0)$ which is the first moment; we use the quotient rule $(\frac{u}{v})'=\frac{u'v-uv'}{v^2}$:
+
+$$
+\begin{align}
+M'_x(0) &= \frac{(\lambda-t)0-\lambda(-1)}{(\lambda - t)^2}\\
+&=\frac{\lambda}{(\lambda -t)^2}\\
+&=\frac{\lambda}{\lambda^2}\\
+&=\frac{1}{\lambda}
+\end{align}
+$$
+
+**Variance:** $Var(X) = E(X^2) - (E(X))^2$ is the square of the first moment subtracted from the second moment.
+
+Now, let's calculate the second moment; we use the quotient rule and the chain rule:
+
+$$
+\begin{align}
+\Rightarrow 
+E(X^2) = M''_x(0)&= \left(\frac{\lambda}{(\lambda-t)^2}\right)' \\
+&= \frac{-2 \lambda (\lambda-t)(-1)}{(\lambda -t)^4} \\
+&=\frac{2 \lambda (\lambda -t)}{(\lambda -t)^4}\\
+&= \frac{2 \lambda}{(\lambda-t)^3}
+\end{align}
+$$
+
+When $t=0$: 
+
+$$
+\begin{align}
+E(X^2) = \frac{2\lambda}{\lambda^3}=\frac{2}{\lambda^2}
+\end{align}
+$$
+
+$$
+\begin{align}
+\Rightarrow Var(X) &= E(X^2) - (E(X))^2\\ 
+& =\frac{2}{\lambda^2}-\frac{1}{\lambda^2}\\
+&=\frac{1}{\lambda^2}
+\end{align}
+$$
