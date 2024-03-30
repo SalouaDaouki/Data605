@@ -1,0 +1,121 @@
+---
+title: "SDaouki_Week10"
+author: "Saloua Daouki"
+date: "2024-03-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise
+
+***Smith is in jail and has 1 dollar; he can get out on bail if he has 8 dollars. A guard agrees to make a series of bets with him. If Smith bets A dollars, he wins A dollars with probability .4 and loses A dollars with probability .6.*** ***Find the probability that he wins 8 dollars before losing all of his money if***
+
+***(a) he bets 1 dollar each time (timid strategy).***
+
+***(b) he bets, each time, as much as possible but not more than necessary to bring his fortune up to 8 dollars (bold strategy).***
+
+***(c) Which strategy gives Smith the better chance of getting out of jail?***
+
+For Smith's case, we have two states:
+
+-   State 0: Smith has 0 dollars.
+
+-   State 8: Smith has 8 dollars and can get out of jail.
+
+And we have two probabilities:
+
+-   $p_0$; the probability that Smith gets out on bail if he has 8 dollars (getting out of jail) before he goes broke (0 dollars).
+
+-   $p_8$; the probability that Smith remains in the state where he has 8 dollars.
+
+We are also given that:
+
+-   If Smith bets A dollars and wins, he will be closer to the state of having 8 dollars. The probability of this happening is 0.4.
+
+-   If Smith bets A dollars and loses, he will still be at 0 dollars. The probability of this happening is 0.6.
+
+So,
+
+-   The probability of staying at state 0 after a loss is $0.6 \times p_0$, and
+
+-   The probability of transitioning to state 8 after a win is $0.4 \times p_8$
+
+***(a) he bets 1 dollar each time (timid strategy).***
+
+So $p_i = 0.4 \times p_{(i+1)} + 0.6 \times p_{(i-1)}$ where $p_0=0$ and $p_8=1$
+
+Now, let's solve these equations:
+
+$$
+\begin{align}
+p_1&=0.4 \times p_2 + 0.6 \times p_0 = 0.4 \times p_2\\ \boxed{p_1=0.4 \times p_2} \\
+p_2 &=0.4 \times p_3 + 0.6 \times p_1 = 0.4 \times p_3 + (0.6 \times 0.4) p_2 \\ &= 0.4 \times p_3 +0.24 \times p_2 \\ (1-0.24) \times p_2&= 0.4 \times p_3\\ 0.76 \times p_2 &= 0.4 \times p_3 \\ \boxed{p_2 = 0.53 \times p_3} \\
+p_3 &= 0.4 \times p_4 + 0.6 \times p_2= 0.4 \times p_4 + 0.6 \times (0.53 \times p_3)\\ &=0.4 \times p_4 + 0.318 \times p_3\\
+\boxed{p_3 = 0.59 \times p_4} \\
+p_4 &= 0.4 \times p_5 + 0.6 \times p_3 = 0.4 \times p_5 + 0.6 \times (0.59 \times p_4)\\
+&= 0.4 \times p_5 + 0.354 \times p_4 \\
+\boxed{p_4 = 0.62 \times p_5}\\
+p_5 &= 0.4 \times p_6 + 0.6 \times p_4 = 0.4 \times p_6 + 0.6 \times (0.62 \times p_5)\\
+&= 0.4 \times p_6 + 0.372 \times p_5 \\
+\boxed{p_5 = 0.64 \times p_6} \\
+p_6 &= 0.4 \times p_7 + 0.6 \times p_5 = 0.4 \times p_7 + 0.6 \times (0.64 \times p_6) \\
+&= 0.4 \times p_7 + 0.382 \times p_6 \\
+\boxed{p_6 = 0.65 \times p_7}\\
+p_7 &= 0.4 \times p_8 + 0.6 \times p_6 = 0.4 \times p_8 + 0.6 \times (0.65 \times p_7) \\
+&= 0.4 \times p_8 + 0.39 \times p_7  \\ 
+0.61 \times p_7 &= 0.4 \\
+p_7 &= \frac{0.4}{0.61} \\
+\boxed{p_7=0.66}
+\end{align}
+$$
+
+Now we have the equations above and we have the value of $p_7 = 0.66$, we can substitute for each probability backward. 
+
+$$
+\begin{align}
+p_7 &=0.66 \\
+p_6 &= 0.65 \times 0.66 = 0.43 \\
+p_5 &= 0.64 \times 0.43 = 0.27 \\
+p_4 &= 0.62 \times 0.27 = 0.17 \\
+p_3 &= 0.59 \times 0.17 = 0.10 \\
+p_2 &= 0.53 \times 0.10 = 0.05 \\
+p_1 &= 0.4 \times 0.05 = 0.021 
+\end{align}
+$$
+
+If Smith started in state 2, he has the probability of 0.05 to reach state 8 before reaching state 0. If he started in state 6, he has a greater probability which is equal to 0.43. As $i \rightarrow 8$, we have $p_i \rightarrow 1$
+
+***(b) he bets, each time, as much as possible but not more than necessary to bring his fortune up to 8 dollars (bold strategy).***
+
+If Smith started at state 1 (1 dollar), he has probability of wining another dollar (going to state 2) of 0.4 and chance of losing 1 dollar of 0.6. 
+
+If he wins, now he is in state 2, he is going to bet the 2 dollars. So, he has the chance of 0.4 of winning another \$2 and chance of 0.6 of loosing them. and so on...
+
+So the equations should be:
+
+$$
+\begin{align}
+p_1 &= 0.4 \times p_2 + 0.6 \times p_0 = 0.4 \times p_2 \\
+p_2 &= 0.4 \times p_4 \\
+p_4 &= 0.4 \times p_8 \\
+\end{align}
+$$
+Calculating the probabilities backward, yields:
+
+$$
+\begin {align}
+p_4 &= 0.4 \\
+p_2 & = 0.4 \times 0.4 = 0.16 \\
+p_1 &= 0.4 \times 0.16 = 0.064
+\end{align}
+$$
+
+***(c) Which strategy gives Smith the better chance of getting out of jail?***
+
+Comparing $p_1$, $p_2$, and $p_4$ for both strategies, it is obvious that the bold strategy gives greater chance to Smith to win 8 dollars and get out of jail before losing all of his money.
+
+
+
