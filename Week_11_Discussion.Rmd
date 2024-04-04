@@ -1,0 +1,161 @@
+---
+title: "Week_11_Discussion"
+author: "Saloua Daouki"
+date: "2024-03-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading Libraries
+
+```{r}
+library(readxl)
+library(ggplot2)
+```
+
+## Bad Passwords
+
+Research question: Does the length of the password affect its strength? 
+"This dataset provides columns with different features of different passwords that lots of people choose" [Kaggle.com](https://www.kaggle.com/datasets/sujaykapadnis/bad-passwords-never-use-them/data)
+
+Each column gives different information about each of the passwords studied, the column i am interster in are the following:
+
+* category (character): What category does the password fall in to?
+
+* value (double): Time to crack by online guessing
+
+* strength (double): quality of password where 10 is highest, 1 is lowest, please note that these are relative to these generally bad passwords
+
+```{r}
+passwords <- read.csv("https://raw.githubusercontent.com/SalouaDaouki/Data605/main/passwords.csv")
+```
+
+## Exploring the data
+
+#### Glimpse of the data:
+
+```{r}
+head(passwords)
+tail(passwords)
+dim(passwords)
+summary(passwords)
+```
+Based on the summary above, the columns 1, 4, 6, 7, 8, & 9 are characters, which are suppsod to be numerical, so before visualizing the data, I will convert those columns to numerical (lines 69 to 78 below)
+
+```{r}
+str(passwords)
+```
+
+
+```{r}
+class(passwords)
+```
+
+### Cleaning the data:
+
+```{r }
+# Check for missing values
+sum(is.na(passwords))
+
+# Remove rows with any missing values
+passwords <- na.omit(passwords)
+```
+
+```{r}
+# Convert character columns to numeric
+passwords$rank <- as.numeric(passwords$rank)
+passwords$value <- as.numeric(passwords$value)
+passwords$offline_crack_sec <- as.numeric(passwords$offline_crack_sec)
+passwords$rank_alt <- as.numeric(passwords$rank_alt)
+passwords$strength <- as.numeric(passwords$strength)
+passwords$font_size <- as.numeric(passwords$font_size)
+summary(passwords)
+```
+
+```{r}
+# Add a new column with the count of characters in the 'password' column next to it
+passwords <- cbind(passwords[, 1], char_count = nchar(passwords$password), passwords[, -1])
+```
+
+
+
+### Visualizing the data:
+
+```{r}
+# Scatter plot of 'length' vs 'strength'
+plot(passwords$char_count, passwords$strength, 
+     xlab = "Length", ylab = "Strength", 
+     main = "Scatter plot of Length vs Strength")
+```
+```{r}
+# Barplot of 'category'
+barplot(table(passwords$category), 
+        xlab = "Category", ylab = "Frequency", 
+        main = "Barplot of Category")
+
+```
+```{r}
+# Create a scatter plot with category on x-axis and strength on y-axis using ggplot2
+ggplot(passwords, aes(x = category, y = strength)) +
+  geom_point() +
+  labs(x = "Category", y = "Strength", title = "Scatter plot of Category vs Strength") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+# Calculate correlation coefficients
+correlation_matrix <- cor(passwords[, c("char_count", "value", "strength")])
+
+# Print correlation matrix
+print(correlation_matrix)
+```
+Based on the correlation matrix, the correlation between the length of the password and its value is very weak, where the strength of the password and its length have little stronger correlation. On the other hand, when the password is stronger, it will take more time to crack it by online guessing (the value).
+
+##Linear Regression:
+
+```{r}
+# For this data, I want to predict the "strength" of the password based on its "char_count"
+model <- lm(strength ~ char_count, data = passwords)
+```
+
+```{r}
+# Summary of the regression model
+summary(model)
+```
+
+```{r}
+# Plot the residuals vs. fitted values
+plot(model, which = 1)
+
+# Plot the normal Q-Q plot of residuals
+plot(model, which = 2)
+
+# Plot the scale-location plot (square root of standardized residuals vs. fitted values)
+plot(model, which = 3)
+
+# Plot the residuals vs. leverage
+plot(model, which = 5)
+```
+
+After the linear model, the residual plots suggest that the linearity is not met since there is a clear trend: the data points are in vertical lines. In addition, the $p-value = 2.72 \times 10^{-09}$ which is less than $0.05$, 
+
+```{r}
+# Fit a quadratic regression model
+lm_quad_model <- lm(strength ~ poly(char_count, degree = 2), data = passwords)
+
+# Summary of the model
+summary(lm_quad_model)
+
+# Plot the model
+plot(lm_quad_model)
+```
+Both r_squared values suggest that the char_count (or the length) of the password doesn't influence, significantly, its strength alone. There are other factors that can make the password strong.
+
+
+
+
+
+
