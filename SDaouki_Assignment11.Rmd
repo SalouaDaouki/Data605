@@ -1,0 +1,103 @@
+---
+title: "Assignment11"
+author: "Saloua Daouki"
+date: "2024-04-04"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, toc=TRUE)
+```
+
+## Loading the data:
+
+```{r cars}
+head(cars)
+tail(cars)
+```
+
+The data **cars** has 50 observations and 2 variables (speed and distance).
+
+```{r summary}
+# statistical summary for the data
+summary(cars)
+```
+```{r Missing_Values}
+# Check for missing values
+sum(is.na(cars))
+```
+
+The **cars** data seems clean and has no missingness, so we will proceed with the next steps on analyzing the data;
+
+## Visualizing the data:
+
+We need to build a linear model of "stopping distance as a function of speed", based on this sentence, the independent variable $(x)$ is "speed" (also known as the explanatory or predictor) where the dependent variable $(y)$ is stopping distance (also known as the response variable).
+
+```{r scatter_plot}
+plot(cars[,"speed"],cars[,"dist"], main="Stopping Distance as a Funtion of Speed",
+    xlab="Speed", ylab="Stopping Distance")
+```
+
+## The Linear Model:
+
+```{r cars_lm}
+cars_lm <- lm(dist ~ speed, data = cars)
+cars_lm
+```
+Based on the output above, the linear model function is:
+$\widehat{dist} = -17.579 + 3.932 \cdot speed$
+
+Now let's plot the line of best fit of the data:
+
+```{r}
+plot(dist ~ speed, data=cars)
+abline(cars_lm, col = "deeppink", lwd = 2)
+```
+
+Both the scatter plot and the line of best fit show that there is a positive correlation between the speed and the stopping distance, where the initial point (y-intercept) is negative as expected and as indicated on the equation of the line. The data points are scatter around the fitted line, but is the linear regression a good model? Let's evaluate its quality;
+
+## Evaluating the quality of the model:
+
+Let's start by extracting more information about the linear model:
+
+```{r lm_summary}
+summary(cars_lm)
+```
+
+The median is $-2.272$ which is close to zero. The minimum and the maximum are of the same magnitude, similarly for the first and third quartile. This indicates that the linear model is a good model. In addition, the standard error is over nine times smaller than the coefficient $\frac{3.9324}{0.4155} = 9.464$. The p-value is $1.49 \times 10^{-12}$ which is very small, this indicates that there is a strong linear relationship between the speed and the stooping distance.
+
+## Residual Analysis:
+
+Now let's plot the residuals, the Q-Q and the other diagnostic plots:
+
+```{r analyze_plots}
+par(mfrow=c(2,2))
+plot(cars_lm)
+```
+
+I am going to plot the residual and the Q-Q plots each separately to have a better visualization:
+
+```{r residual_plot}
+plot(fitted(cars_lm, resid(cars_lm)))
+```
+
+The residual plot shows that there is a slight abnormality on the right side end of the plot, a better model might be constructed for better prediction.
+
+Let's look at the Q-Q plot;
+
+```{r Q-Q_plot}
+qqnorm(resid(cars_lm))
+qqline(resid(cars_lm))
+```
+
+Yes! The Q-Q plot confirms the light divergence on the right side end of the points. This indicates that the speed as a predictor is not sufficient to explain the stopping distance; there may be other predictors that influence the distance. Also, if we look at the **summary(cars_lm)** output, the **Multiple R-squared:  0.6511** shows that $65.11\%$ of the variability in stopping distance is explained by the variation in speed.
+
+The **cars** data has only two variables; speed and distance, so if we want to perform *multiple regression model* we have to gather more data about these cars using other variables. 
+In conclusion, the linear regression model assumes that there is a linear relationship between the predictor variable (speed) and the response variable (stopping distance).
+
+
+ 
