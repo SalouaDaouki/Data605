@@ -1,0 +1,428 @@
+---
+title: "Week_12_Discussion"
+author: "Saloua Daouki"
+date: "2024-04-06"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# Load the necessary packages 
+library(tidyverse)
+library(corrplot)
+```
+
+
+## Loading the data
+
+This data set provides different factors that may or may not influence the chances of having heart attack. Since there are many possible predictors that may explain the risk of having heart attack, I am going to use multiple regression model:
+
+```{r Heart_Attack_Data}
+# Load Heart attack data into R
+Heart_Attack <- read_csv("https://raw.githubusercontent.com/SalouaDaouki/Data605/main/heart_attack_prediction_dataset2.csv",
+                          col_types = cols(
+                            Age = col_double(),
+                            Cholesterol = col_double(),
+                            `Heart Rate` = col_double(),
+                            Diabetes = col_double(),
+                            `Family History` = col_double(),
+                            Smoking = col_double(),
+                            Obesity = col_double(),
+                            `Alcohol Consumption` = col_double(),
+                            `Exercise Hours Per Week` = col_double(),
+                            BMI = col_double(),
+                            Triglycerides = col_double(),
+                            `Physical Activity Days Per Week` = col_double(),
+                            `Sleep Hours Per Day` = col_double(),
+                            `Heart Attack Risk` = col_double()
+                          ))
+```
+
+```{r Heart_Attack}
+head(Heart_Attack)
+tail(Heart_Attack)
+```
+The data has 26 variables with 8763 observations.
+
+## Visualizing the relationships in the Heart Attack data 
+
+First, let's take a look at the description of the data:
+
+```{r}
+summary(Heart_Attack)
+```
+
+Then, we need to check for any missing data values to see if we need to do any necessary cleaning:
+
+```{r Missing_Values}
+# Check for missing values
+sum(is.na(Heart_Attack))
+```
+
+Perfect! No missing values.
+Although, the "Blood Pressure" column needs some manipulations to make it included in the analysis; the original data was (160/70) in the form of (Systolic Pressure/Diastolic Pressure), let's separate the column to two columns:
+
+```{r}
+# Separate systolic and diastolic pressure
+Heart_Attack <- separate(Heart_Attack, `Blood Pressure`, into = c("Systolic_Pressure", "Diastolic_Pressure"), sep = "/")
+
+# Convert separated columns to numeric
+Heart_Attack$Systolic_Pressure <- as.numeric(Heart_Attack$Systolic_Pressure)
+Heart_Attack$Diastolic_Pressure <- as.numeric(Heart_Attack$Diastolic_Pressure)
+```
+
+Let's compare all the data that we have in the data set and get a glimpse of different relationships between different variables. Since the data includes qualitative data as well, we need to select only the numerical data to compare their relationships, otherwise we'll encounter an error;
+
+```{r general visual}
+# Select only numerical columns from Heart_Attack data
+numerical_data <- select_if(Heart_Attack, is.numeric)
+
+# Use pairs function to create scatter plot matrix for numerical variables
+pairs(numerical_data, gap = 0.5)
+```
+
+Since the plots are very tiny and hard to see, let's select only the numerical variables from the "Heart_Attack" data, and assign it to a subset "numerical_var";
+
+```{r}
+# Splitting the data into subdata sets for better visualization
+# Selecting only numerical variables
+numerical_var <- Heart_Attack[, sapply(Heart_Attack, is.numeric)]
+
+# View the subset
+View(numerical_var)
+```
+
+Then, split the "numercial_var" data into subdata sets where we include only 3 to 4 variables in each and apply pairs() function so we can visualize the plots better;
+
+```{r}
+# Selecting columns from 1 to 3 and the last column (21)
+subdata <- numerical_var[, c(1:3, 21)]
+pairs(subdata)
+```
+
+```{r}
+# Selecting columns from 4 to 6 and the last column
+subdata1 <- numerical_var[, c(4:6, 21)]
+pairs(subdata1)
+```
+
+```{r}
+# Selecting columns from 7 to 9 and the last column
+subdata2 <- numerical_var[, c(7:9, 21)]
+pairs(subdata2)
+```
+
+```{r}
+# Selecting columns from 10 to 13 and the last column
+subdata3 <- numerical_var[, c(10:13, 21)]
+pairs(subdata3)
+```
+
+```{r}
+# Selecting columns from 14 to 17 and the last column
+subdata4 <- numerical_var[, c(14:17, 21)]
+pairs(subdata4)
+```
+
+```{r}
+# Selecting columns from 18 to 21
+subdata5 <- numerical_var[, 18:21]
+pairs(subdata5)
+```
+
+```{r correlation_matrix}
+# Compute the correlation matrix
+correlation_matrix <- cor(numerical_var)
+
+# Print the correlation matrix
+print(correlation_matrix)
+```
+
+That's lots of data to process (with my eyes), let's visualize this in a better way:
+
+```{r}
+# Compute the correlation matrix 1
+correlation_matrix1 <- cor(subdata)
+
+# Create a heatmap of the correlation matrix with annotations
+corrplot(correlation_matrix1, method = "color", type = "upper", order = "hclust", tl.col = "black", tl.srt = 45, 
+         mar = c(0, 0, 0, 5),  # Increase spacing on the right side
+         tl.cex = 0.8,         # Adjust label size
+         cl.ratio = 0.2)       # Adjust the width of color legend
+
+# Highlight variables with strong correlations (absolute correlation coefficient > 0.7)
+high_correlation_indices1 <- which(abs(correlation_matrix1) > 0.7 & correlation_matrix1 != 1, arr.ind = TRUE)
+points(high_correlation_indices1, pch = 16, col = "red")
+```
+
+Cholesterol is the predictor that has little stronger correlation with the hrat attack risk.
+
+```{r}
+# Compute the correlation matrix 2
+correlation_matrix2 <- cor(subdata1)
+
+# Create a heatmap of the correlation matrix with annotations
+corrplot(correlation_matrix2, method = "color", type = "upper", order = "hclust", tl.col = "black", tl.srt = 45, 
+         mar = c(0, 0, 0, 5),  # Increase spacing on the right side
+         tl.cex = 0.8,         # Adjust label size
+         cl.ratio = 0.2)       # Adjust the width of color legend
+
+# Highlight variables with strong correlations (absolute correlation coefficient > 0.7)
+high_correlation_indices2 <- which(abs(correlation_matrix2) > 0.7 & correlation_matrix2 != 1, arr.ind = TRUE)
+points(high_correlation_indices2, pch = 16, col = "red")
+```
+
+Based on this heatmap, diabetes is the predictor that has stronger correlation with the heart attack risk.
+
+```{r}
+# Compute the correlation matrix 3
+correlation_matrix3 <- cor(subdata2)
+
+# Create a heatmap of the correlation matrix with annotations
+corrplot(correlation_matrix3, method = "color", type = "upper", order = "hclust", tl.col = "black", tl.srt = 45, 
+         mar = c(0, 0, 0, 5),  # Increase spacing on the right side
+         tl.cex = 0.8,         # Adjust label size
+         cl.ratio = 0.2)       # Adjust the width of color legend
+
+# Highlight variables with strong correlations (absolute correlation coefficient > 0.7)
+high_correlation_indices3 <- which(abs(correlation_matrix3) > 0.7 & correlation_matrix3 != 1, arr.ind = TRUE)
+points(high_correlation_indices3, pch = 16, col = "red")
+```
+
+Heart attack risk can be influenced with obesity as well.
+
+```{r}
+# Compute the correlation matrix 4
+correlation_matrix4 <- cor(subdata3)
+
+# Create a heatmap of the correlation matrix with annotations
+corrplot(correlation_matrix4, method = "color", type = "upper", order = "hclust", tl.col = "black", tl.srt = 45, 
+         mar = c(0, 0, 0, 5),  # Increase spacing on the right side
+         tl.cex = 0.8,         # Adjust label size
+         cl.ratio = 0.2)       # Adjust the width of color legend
+
+# Highlight variables with strong correlations (absolute correlation coefficient > 0.7)
+high_correlation_indices4 <- which(abs(correlation_matrix4) > 0.7 & correlation_matrix4 != 1, arr.ind = TRUE)
+points(high_correlation_indices4, pch = 16, col = "red")
+```
+
+The number hours one exercises can lower their heat attack risk.
+
+```{r}
+# Compute the correlation matrix 5
+correlation_matrix5 <- cor(subdata4)
+
+# Create a heatmap of the correlation matrix with annotations
+corrplot(correlation_matrix5, method = "color", type = "upper", order = "hclust", tl.col = "black", tl.srt = 45, 
+         mar = c(0, 0, 0, 5),  # Increase spacing on the right side
+         tl.cex = 0.8,         # Adjust label size
+         cl.ratio = 0.2)       # Adjust the width of color legend
+
+# Highlight variables with strong correlations (absolute correlation coefficient > 0.7)
+high_correlation_indices5 <- which(abs(correlation_matrix5) > 0.7 & correlation_matrix5 != 1, arr.ind = TRUE)
+points(high_correlation_indices5, pch = 16, col = "red")
+```
+
+There is very weak association between the heart attack risk and the income.
+
+```{r}
+# Compute the correlation matrix 6
+correlation_matrix6 <- cor(subdata5)
+
+# Create a heatmap of the correlation matrix with annotations
+corrplot(correlation_matrix6, method = "color", type = "upper", order = "hclust", tl.col = "black", tl.srt = 45, 
+         mar = c(0, 0, 0, 5),  # Increase spacing on the right side
+         tl.cex = 0.8,         # Adjust label size
+         cl.ratio = 0.2)       # Adjust the width of color legend
+
+# Highlight variables with strong correlations (absolute correlation coefficient > 0.7)
+high_correlation_indices6 <- which(abs(correlation_matrix6) > 0.7 & correlation_matrix6 != 1, arr.ind = TRUE)
+points(high_correlation_indices6, pch = 16, col = "red")
+```
+
+Let's look at the numbers using the full regression model across all numerical variables of the data set;
+
+## Identifying Potential Predictors:
+
+Let's define the regression model to all numerical variables in the data:
+
+```{r lm_full}
+Heart_Attack_lm.Full <- lm(`Heart Attack Risk` ~ Age + Cholesterol + Systolic_Pressure + Diastolic_Pressure + `Heart Rate` + Diabetes + `Family History` + Smoking + Obesity + `Alcohol Consumption` + `Exercise Hours Per Week` + `Previous Heart Problems` + `Medication Use` + `Stress Level` + `Sedentary Hours Per Day` + Income + BMI + Triglycerides + `Physical Activity Days Per Week` + `Sleep Hours Per Day`, data = Heart_Attack)
+```
+
+Now, let's look at the summary of the model:
+
+```{r}
+summary(Heart_Attack_lm.Full)
+```
+
+
+Based on the summary of the full regression model, the only predictors that explain little bit (because the p value are greater than 0.05) the heart attack risk are:  Cholesterol, Systolic_Pressure , Diabetes, and Sleep Hours Per Day.
+Now, let's perform the backward process elimination:
+
+```{r}
+Heart_Attack.lm.2 <- update(Heart_Attack_lm.Full, .~. - Age, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.2)
+```
+
+There is a very tiny improvement on the p-value; it goes from 0.4396 to 0.4197. Let's continue with backward process elimination:
+
+```{r}
+Heart_Attack.lm.3 <- update(Heart_Attack.lm.2, .~. - Diastolic_Pressure, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.3)
+```
+
+
+```{r}
+Heart_Attack.lm.4 <- update(Heart_Attack.lm.3, .~. - `Heart Rate`, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.4)
+```
+
+
+```{r}
+Heart_Attack.lm.5 <- update(Heart_Attack.lm.4, .~. - `Family History`, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.5)
+```
+
+
+```{r}
+Heart_Attack.lm.6 <- update(Heart_Attack.lm.5, .~. - Smoking, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.6)
+```
+
+```{r}
+Heart_Attack.lm.7 <- update(Heart_Attack.lm.6, .~. - Obesity, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.7)
+```
+
+
+```{r}
+Heart_Attack.lm.8 <- update(Heart_Attack.lm.7, .~. - `Alcohol Consumption`, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.8)
+```
+
+
+```{r}
+Heart_Attack.lm.9 <- update(Heart_Attack.lm.8, .~. - `Exercise Hours Per Week`, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.9)
+```
+
+```{r}
+Heart_Attack.lm.10 <- update(Heart_Attack.lm.9, .~. - `Previous Heart Problems`, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.10)
+```
+
+```{r}
+Heart_Attack.lm.11 <- update(Heart_Attack.lm.10, .~. - `Medication Use`, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.11)
+```
+
+
+```{r}
+Heart_Attack.lm.12 <- update(Heart_Attack.lm.11, .~. - `Stress Level`, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.12)
+```
+
+
+```{r}
+Heart_Attack.lm.13 <- update(Heart_Attack.lm.12, .~. - Income, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.13)
+```
+
+
+```{r}
+Heart_Attack.lm.14 <- update(Heart_Attack.lm.13, .~. - BMI, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.14)
+```
+
+```{r}
+Heart_Attack.lm.15 <- update(Heart_Attack.lm.14, .~. - `Physical Activity Days Per Week`, data =
+    Heart_Attack)
+summary(Heart_Attack.lm.15)
+```
+
+
+The p-value is less than 0.05, which is better. So, we can stop the backward process elimination and use this model even though all predictors that we have left have p-value that is greater than 0.05.
+The coefficients of each of the predictors are very small (the slope or the rate of change). That indicates that as any of those predictors change, there is a small change in the heart attack risk.
+Also, the Multiple R-squared value of 0.001495 indicates that only about 0.15% of the variance in Heart Attack Risk is explained by the predictor variables included in the model. In addition, the Adjusted R-squared value of 0.000811 means that approximately 0.0811% of the variance in the dependent variable (Heart Attack Risk) is explained by the predictors.
+
+## Residual Analysis:
+
+
+```{r}
+par(mfrow=c(2,2))
+plot(Heart_Attack.lm.15)
+```
+
+
+```{r}
+# Define the formula with additional terms
+formula <- formula(`Heart Attack Risk` ~ Cholesterol + Systolic_Pressure + Diabetes + 
+                   `Sedentary Hours Per Day` + Triglycerides + `Sleep Hours Per Day` +
+                   I(Cholesterol^2) + as.factor(Diabetes) + Cholesterol:as.factor(Diabetes))
+
+# Fit the linear regression model
+model <- lm(formula, data = Heart_Attack)
+
+# Print the summary of the model
+summary(model)
+
+# Conduct residual analysis
+residuals <- residuals(model)
+
+# Plot residuals vs. fitted values
+plot(fitted(model), residuals)
+```
+
+Based on this residual plot, I think the predictors that are on the data already are not significantly not enough or the linear model is not good enough.
+
+## Different Models:
+
+```{r}
+# Fit polynomial regression model
+poly_model <- lm(`Heart Attack Risk` ~ poly(Cholesterol, 2), data = Heart_Attack)
+
+# Create a data frame with predictor variable(s)
+new_data <- data.frame(Cholesterol = Heart_Attack$Cholesterol)
+
+# Predictions
+predictions <- predict(poly_model, newdata = new_data)
+```
+
+
+```{r}
+# Create a scatter plot of actual vs. predicted values
+plot(Heart_Attack$`Heart Attack Risk`, predictions, 
+     xlab = "Actual Heart Attack Risk", ylab = "Predicted Heart Attack Risk",
+     main = "Actual vs. Predicted Heart Attack Risk")
+abline(a = 0, b = 1, col = "red")  # Add a 45-degree line for reference
+```
+
+
+## Conclusion:
+
+In conclusion, based on the analysis, it seems like the predictors are not explaining the variability in heart attack risk. since the R-squared value is low, it means that the predictors exaplin only small percentage of the response variable.
+
+
+
