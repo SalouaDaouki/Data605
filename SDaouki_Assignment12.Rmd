@@ -1,0 +1,353 @@
+---
+title: "SDaouki_Assignment12"
+author: "Saloua Daouki"
+date: "2024-04-12"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# Load the necessary packages 
+library(tidyverse)
+library(corrplot)
+library(ggplot2)
+```
+
+
+## Loading the data into R from my Github
+
+```{r}
+Exp_data <- read_csv("https://raw.githubusercontent.com/SalouaDaouki/Data605/main/Exp_data.csv")
+```
+
+**1. Provide a scatterplot of LifeExp~TotExp, and run simple linear regression. Do not transform the variables. Provide and interpret the F statistics, R^2, standard error,and p-values only. Discuss whether the assumptions of simple linear regression met.**
+
+
+```{r glimpse}
+str(Exp_data)
+```
+
+```{r Glimpse of the data}
+head(Exp_data)
+tail(Exp_data)
+```
+
+```{r describe}
+summary(Exp_data)
+```
+
+
+```{r Missing_Values}
+# Check for missing values
+sum(is.na(Exp_data))
+```
+
+No missing values.
+
+## Visualizing the data:
+
+Now, I will provide a scatterplot of LifeExp~TotExp
+
+````{r scatter_plot}
+ggplot(Exp_data, aes(x = LifeExp, y = TotExp)) +
+  geom_point() +
+  labs(title = "Life expectancy vs Total expenditures",
+       x = "Life Expectancy",
+       y = "Total expenditures")
+```
+
+The scatter plot seems exponential, that may suggests that there is nonlinear association between the "Life Expectancy" and "Total Expenditures".
+
+## Simple Linear Regression:
+
+```{r}
+Exp_data_lm <- lm(TotExp ~ LifeExp, data = Exp_data)
+Exp_data_lm
+```
+$-234039$ is the y-intercept of the line of the best fit, and $4092$ is the rate of change or the slope of the line. The regression equation for this model - to predict Total Expenditures based on the value of Life Expectancy is - 
+
+$\text{Total Expenditures} = −234039+4092 \times \text{Life Expectancy}$
+
+Now let's plot the line of best fit of the data:
+
+```{r}
+plot(TotExp ~ LifeExp, data=Exp_data)
+abline(Exp_data_lm, col = "chartreuse", lwd = 2)
+```
+
+### Evaluating the quality of the linear model:
+
+Let's start by extracting more information about the linear model:
+
+```{r lm_summary}
+summary(Exp_data_lm)
+```
+
+-  A F-statistic of 65.26 indicates that this simple linear model with the predictor variable, "Life Expectancy", is statistically good compared to a model with no predictors; intercept-only model.
+
+-  The Multiple R-squared indicates that 25.77% of the variability in total expenditures is explained by the variation in life expectancy.
+
+-  The Standard error is 506.6 which is 8 times smaller than the corresponding coefficient (4092.3), so the model is a little bit good.
+
+-  The p-value is very small which indicates that there is a strong evidence of linear association between life expectancy and total expenditures.
+
+Now, let's examine the residual plot to check the quality of this model.
+
+### Residual Plot:
+
+```{r}
+plot(fitted(Exp_data_lm),resid(Exp_data_lm))
+```
+
+The residual plot is decreasing in a linear pattern followed by an exponential increasing pattern. This indicates that we need a better model; it suggests that the assumptions of simple linear regression might not be fully met.
+
+Let's take a look at the Q-Q plot and see what it will reveal:
+
+```{r}
+qqnorm(resid(Exp_data_lm))
+qqline(resid(Exp_data_lm))
+```
+
+The shape of the Q-Q plot shows a deviation from the right-side tail, which suggests that the residuals are not normally distributed. It also indicates that the residuals have heavier tail or are more skewed to the right than a normal distribution.
+
+```{r}
+# Set the size of the plotting device
+options(repr.plot.width = 8, repr.plot.height = 8)  
+
+# Plot the regression diagnostics
+plot(Exp_data_lm)
+```
+
+
+The scale-location plot shows a v-like pattern plus the cluster on the right side of the plot, I think this means that there is no consistency in the variability of the predictor; which may suggests that this regression analysis is not valid and we need a better model.
+
+
+**2. Raise life expectancy to the 4.6 power** (i.e., $LifeExp^{4.6}$). **Raise total expenditures to the 0.06 power (nearly a log transform,** $TotExp^{.06}$). **Plot** $LifeExp^{4.6}$ **as a function of** $TotExp^{.06}$, **and r re-run the simple regression model using the transformed variables. Provide and interpret the F statistics,** $R^2$**, standard error, and p-values. Which model is "better?"**
+
+First, let's create a new column that has the values of $LifeExp^{4.6}$ and another column that has the values of $TotExp^{.06}$: **(the two columns already exist in the data that I loaded from my Github, that is because when I am knitting the document, the link that was provided on blackboard produces an error. So i had to download the Exp_data into my local machine from R, upload it to my Github than...)
+
+This is the code I used originally to add the two columns: 
+
+{Exp_data$LifeExp_4.6 <- Exp_data$LifeExp ^ 4.6
+Exp_data$TotExp_.06 <- Exp_data$TotExp ^ 0.06}
+
+
+Now let's Plot $LifeExp^{4.6}$ as a function of $TotExp^{.06}$, meaning that the $LifeExp^{4.6}$ is going to be on the y-axis and the $TotExp^{.06}$ is going to be on the x-axis:
+
+
+````{r scatter_plot1}
+ggplot(Exp_data, aes(x = TotExp_.06, y = LifeExp_4.6)) +
+  geom_point() +
+  labs(title = "Transformed Life expectancy vs Transformed Total expenditures",
+       x = "Transformed Total expenditures",
+       y = "Transformed Life Expectancy")
+```
+
+The scatter plot shows that there is a linear, positive correlation between the transformed variables.
+
+## Simple Linear Regression for the transformed variables:
+
+```{r}
+Exp_data_lm1 <- lm(LifeExp_4.6 ~ TotExp_.06, data = Exp_data)
+Exp_data_lm1
+```
+
+$-736527909$ is the y-intercept of the line of the best fit, and $620060216 $ is the rate of change or the slope of the line (both values are very big). The regression equation for this model - to predict transformed life expectancy based on the value of the transformed total expenditures is - 
+
+$\text{transformed LifeExp} = -736527909+620060216 \times \text{transformed TotExp}$
+
+Now let's plot the line of best fit of the data:
+
+```{r}
+plot(LifeExp_4.6 ~ TotExp_.06, data=Exp_data)
+abline(Exp_data_lm1, col = "cornflowerblue", lwd = 2)
+```
+The line of best fit emphasizes that there is a positive linear relationship between the TotExp_.06 and LifeExp_4.6.
+
+### Evaluating the quality of the linear model:
+
+Let's start by extracting more information about the linear model:
+
+```{r lm_summary1}
+summary(Exp_data_lm1)
+```
+
+-  A F-statistic of 507.7 indicates that this simple linear model with the predictor variable, "Total Expenditures", is statistically good; meaning that the explanatory variable, "Life Expectancy" explains a good amount of the variability of the predictor.
+
+-  The Multiple R-squared indicates that 72.98% of the variability in life expectancy is explained by the variation in total expenditures.
+
+-  The Standard error is 27518940 which is over 22 times smaller than the corresponding coefficient (620060216), so the model is a good model.
+
+-  The p-value is very tiny (< 2.2e-16) which indicates that there is a strong evidence of linear association between life expectancy and total expenditures.
+
+Now, let's examine the residual plot to check the quality of this model.
+
+### Residual Plot:
+
+```{r}
+plot(fitted(Exp_data_lm1),resid(Exp_data_lm1))
+```
+
+The residual plot has data points scattered around in the plot, that indicates that the predictor in the regression model sufficiently explain the data.
+
+Let's take a look at the Q-Q plot and see what it will reveal:
+
+```{r}
+qqnorm(resid(Exp_data_lm1))
+qqline(resid(Exp_data_lm1))
+```
+
+The points plotted in this figure seem to follow almost a straight line, that means that the residuals are close normally distributed.
+
+```{r}
+# Set the size of the plotting device
+options(repr.plot.width = 8, repr.plot.height = 8)  
+
+# Plot the regression diagnostics
+plot(Exp_data_lm1)
+```
+
+
+I think the shape of the scale-location suggests that the variability of the residuals is constant.
+
+The residuals are randomly scattered around zero with no clear patterns on the second model (with the transformed variables). In addition, the Q-Q plot for the second model seems to follow a straight line better than the first model, where there is a divergence on the right tail of the plot. However, based on the calculated RSS below, the first model has smaller RSS (measures the overall goodness of fit of the model by summing the squared differences between the observed and predicted values) which indicates that it is a better model.
+
+
+```{r}
+# Get the residuals for each model
+residuals <- residuals(Exp_data_lm)
+residuals1 <- residuals(Exp_data_lm1)
+
+# Calculate Residual Sum of Squares (RSS) for each residual
+RSS <- sum(residuals^2)
+RSS1 <- sum(residuals1^2)
+RSS
+RSS1
+```
+
+
+**3. Using the results from 3, forecast life expectancy when** $TotExp^.06 =1.5$. **Then forecast life expectancy when** $TotExp^.06=2.5$.
+
+```{r}
+# Create a dataframe with the values of TotExp_0.06
+new_data <- data.frame(TotExp_.06 = c(1.5, 2.5))
+
+# Forecast life expectancy
+life_expectancy_forecast <- predict(Exp_data_lm1, newdata = new_data)
+
+# Print the forecasted life expectancy
+print(life_expectancy_forecast)
+```
+
+- For $TotExp^0.06 = 1.5$, the forecasted life expectancy is approximately 193,562,414 years.
+
+- For $TotExp^0.06 = 2.5$, the forecasted life expectancy is approximately 813,622,630 years.
+
+
+**4. Build the following multiple regression model and interpret the F Statistics,** $R^2$, **standard error, and p-values. How good is the model?**
+$LifeExp = b_0+b_1 \times PropMd + b_2 \times TotExp +b_3 \times PropMD \times TotExp$
+
+```{r}
+# Fit the multiple regression model
+Exp_data_lm2 <- lm(LifeExp ~ PropMD + TotExp + PropMD:TotExp, data = Exp_data)
+
+# Summary of the model
+summary(Exp_data_lm2)
+```
+
+The equation for the multiple regression model is:
+
+$LifeExp = 62.77+ 1497 \times PropMd + 0.00007233 \times TotExp -0.006026 \times PropMD \times TotExp$
+
+- The F-statistic is 34.49 which indicates that the regression model is good enough; the model explains a good amount of the variance in the dependent variable (LifeExp). That is emphasized by the tiny value of the p-value $< 2.2\times 10^{-16}$
+
+- The R-squared value is 0.3574, indicating that approximately 35.74% of the variance in LifeExp is explained by the independent variables (PropMD, TotExp, and their product).
+
+- The standard error also indicates that the model is a good model; it is low value (8.765).
+
+So this model is really good; it is better than the previous models, let's confirm with the residuals plot:
+
+
+### Residual Plot:
+
+```{r}
+plot(fitted(Exp_data_lm2),resid(Exp_data_lm2))
+```
+
+The shape observed on the residuals plot indicates the variability of life expectancy (the dependent variable) is not consistent across different levels of the independent variables (PropMD, TotExp, and their product).
+
+Let's take a look at the Q-Q plot and see what it will reveal:
+
+```{r}
+qqnorm(resid(Exp_data_lm2))
+qqline(resid(Exp_data_lm2))
+```
+
+The slight downward curve observed in the Q-Q plot suggests potential deviations from normality in the residuals.
+
+```{r}
+# Set the size of the plotting device
+options(repr.plot.width = 8, repr.plot.height = 8)  
+
+# Plot the regression diagnostics
+plot(Exp_data_lm2)
+```
+
+The scale-location plot confirms the assumption that this model is good fit fails; a better model may be constructed for better predictions.
+
+
+**Forecast LifeExp when PropMD=.03 and TotExp = 14. Does this forecast seem realistic? Why or why not?**
+
+```{r}
+# Create a data frame with the forecasted values
+forecast_data <- data.frame(PropMD = 0.03, TotExp = 14)
+
+# Use the predict function to forecast LifeExp
+forecasted_life_exp <- predict(Exp_data_lm2, newdata = forecast_data)
+
+# Print the forecasted LifeExp value
+print(forecasted_life_exp)
+```
+
+Let's find the row that corresponds to those values PropMD=.03 and TotExp = 14 and compare it to the predicted value of the life expectancy;
+
+```{r}
+# Find the row where PropMD = 0.03 and TotExp = 14
+desired_row <- subset(Exp_data, PropMD == 0.03 & TotExp == 14)
+
+# Print the desired row
+print(desired_row)
+```
+
+Since we cannot find those exact values, let's find values that are closer in the data frame so we can compare the life expectancy and decide if they are reasonable:
+
+
+```{r}
+# Set the tolerance level for the search
+tolerance <- 1.0 
+
+# Find rows where PropMD is close to 0.03 and TotExp is close to 14
+desired_row1 <- subset(Exp_data, abs(PropMD - 0.03) <= tolerance & abs(TotExp - 14) <= tolerance)
+
+# Print the desired row
+print(desired_row1)
+```
+Based on the data collected, PropMD = 0.0000245 and TotExp = 13, the corresponding value of LifeExp = 49, I think the value of LifeExp = 107.696 which corresponds to PropMD=.03 and TotExp = 14 is realistic.
+
+## Summary:
+
+In this analysis, we explored real-world healthcare expenditure data from 2008, focusing on life expectancy as the dependent variable. We conducted simple linear regression to understand the relationship between life expectancy and total expenditures, finding a strong association. However, diagnostic plots suggested that the assumptions of linear regression might not be sufficiently met.
+
+To address this, we transformed the variables and reran the regression analysis, finding a stronger relationship between the transformed variables. The multiple regression model, incorporating additional predictors like PropMd, TotExp and their product showed improved performance, explaining a higher proportion of variance in life expectancy.
+
+We used the models to forecast life expectancy under specific conditions, comparing the results to values in the dataset to assess realism. Overall, while the models provided valuable insights into the factors influencing life expectancy, more complex model may be needed to explain the model better.
+
+
