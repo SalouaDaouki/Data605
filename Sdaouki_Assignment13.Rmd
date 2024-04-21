@@ -1,0 +1,352 @@
+---
+title: "SDaouki_Assignment13"
+author: "Saloua Daouki"
+date: "2024-04-16"
+output: 
+ html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(ggplot2)
+```
+
+
+## Exercise #1
+
+**Use integration by substitution to solve the integral below.**
+
+$\int 4 e^{-7x} dx$
+
+Let:
+
+
+$$
+\begin {align}
+u &= -7x \\
+du &= -7 dx \\
+dx &= \frac{du}{-7}
+\end{align}
+$$
+
+
+Now, let's substitute in the original integral:
+
+
+$$
+\begin{align}
+\int 4 e^{-7x} dx &= \int 4 e^u \frac {du}{-7} \\
+\frac{-4}{7} e^u + C &= \frac{-4}{7} e^{-7x} + C\\
+\boxed{\int 4 e^{-7x} dx=\frac{-4}{7} e^{-7x} + C}
+\end{align}
+$$
+
+
+## Exercise #2:
+
+
+**Biologists are treating a pond contaminated with bacteria. The level of contamination is changing at a rate of** $\frac{dN}{dt} = \frac{-3150}{t^4} - 220$ **bacteria per cubic centimeter per day, where t is the number of days since treatment began. Find a function** $N( t )$ **to estimate the level of contamination if the level after 1 day was 6530 bacteria per cubic centimeter.**
+
+To find the function $N(t)$, we need to solve:
+
+\$\int \frac{-3150}{t^4} - 220 dt \$
+
+
+$$
+\begin{align}
+\int \frac{-3150}{t^4} - 220 dt &= \int \frac{-3150}{t^4} dt + \int -220 dt \\
+-3150 \int t^{-4} dt -220 \int dt &= -3150 (\frac {t^{-3}}{-3}) -220 t + C \\
+int \frac{-3150}{t^4} - 220 dt &=\frac{1050}{t^3} - 220t + C\\
+\boxed {N(t) = \frac{1050}{t^3} - 220t + C}
+\end{align}
+$$
+
+
+## Exercise #3:
+
+**Find the total area of the red rectangles in the figure below, where the equation of the line is** $f ( x ) = 2x - 9$
+
+
+![](images/Screenshot 2024-04-17 at 7.12.53 PM.png)
+
+
+To find the total area of the red rectangles in the figure given the equation of the line, we need to calculate the integral of the given equation on the interval [4.5, 8.5]
+
+
+$$
+\begin {align}
+\int _{4.5}^{8.5} 2x-9 dx &= x^2 - 9x \bracevert _{4.5} ^{8.5}\\
+[4.5^2 - (9*4.5)] - [8.5^2 - (9*8.5)] &= 16
+\end {align}
+$$
+
+Let's check if the area is $16 units^2$
+
+
+```{r }
+# Define the function
+f1 <- function(x) {
+  return((2*x) - 9)
+}
+
+# Calculate the definite integral
+Area1 <- integrate(f1, lower = 4.5, upper = 8.5)
+
+# Print the result
+print(Area1)
+```
+
+
+## Exercise #4:
+
+
+**Find the area of the region bounded by the graphs of the given equations.**
+$y=x^2 -2x-2$ , $y=x+2$
+
+First, we need to find the boundaries of the integral; we find the points of intersection between the two lines:
+
+
+$$
+\begin {align}
+x^2 -2x -2 = x+2 \\
+\Rightarrow x^2 - 3x -4 = 0
+\end{align}
+$$
+
+Using the quadratic equation : $x = \frac{-b \pm \sqrt {b^2 -4ac}}{2a}$ where $a=1$ , $b=-3$ and $c=-4$
+
+
+
+$$
+\begin {align}
+x &= \frac{3 \pm \sqrt {(-3)^2 -4(1)(-4)}}{2(1)}\\
+x &= \frac{3 \pm \sqrt{9+16}}{2}\\
+x &= \frac{3 \pm 5}{2} \\
+x &= -1 \\ \text{or}\\ x&= 4
+\end{align}
+$$
+
+
+The interval we are going to integrate the difference between the given equations is $[-1,4].
+
+
+Now, let's evaluate both equations in numbers that are in the interval $x=2$ and $x=3$ to determine which one is above the other.
+
+For $x=2$
+
+
+$$
+\begin{align}
+y &= (2)^2 -(2)(2) -2\\
+y &= 4-4-2 = -2 \\
+\text{and}\\
+y &= (2) + 2 = 4
+\end{align}
+$$
+
+
+For $x=3$
+
+
+$$
+\begin{align}
+y &= (3)^2 -(2)(3) -2\\
+y &= 9-6 -2 = 1 \\
+\text{and}\\
+y &= (3) + 2 = 5
+\end{align}
+$$
+
+So, the equation $x+2$ is above the equation $x^2 -2x -2$
+
+$\Rightarrow$ The equation we need to integrate is:
+
+
+$$
+\begin{align}
+x+2 - (x^2 - 2x - 2) &= x + 2 - x^2 + 2x + 2 \\
+&= -x^2 + 3x +4
+\end{align}
+$$
+
+Let's find the area:
+
+
+$$
+\begin{align}
+\int_{-1}^{4} (-x^2 + 3x +4 )dx & = \int _{-1}^{4} -x^2 dx + \int _{-1}^{4} 3x dx + \int _{-1}^{4} 4dx \\
+ &= [-\frac {1}{3} x^3]_{-1}^{4}  + [\frac{3}{2} x^2]_{-1}^{4} + [4x]_{-1}^{4} \\
+ &= [\frac{-1}{3} (64+1)] + [\frac{3}{2}(16-1)] +[4(4+1)] \\
+ &= \frac{-1}{3} (65) + \frac{3}{2} (15) + 20 \\
+ &= \frac{-65(2) +3(15)(3)}{6} +20 \\
+ &= \frac{5}{6} + 20 = 20.8 \overline{3}
+\end{align}
+$$
+
+
+Let's check our answer;
+
+
+```{r }
+f2 <- function(x) {
+  return(-(x^2) + (3 * x) + 4 )
+}
+Area2 <- integrate (f2, lower=-1, upper=4 )
+print(Area2)
+```
+
+
+Let's visualize the region that we are calculating the area of:
+
+
+```{r}
+# Define the equations
+f1 <- function(x) x^2 - 2*x - 2
+f2 <- function(x) x + 2
+
+# Generate x values
+x_values <- seq(-2, 5, by = 0.1)
+
+# Calculate y values for each equation
+y1_values <- f1(x_values)
+y2_values <- f2(x_values)
+
+# Create a dataframe for plotting
+df <- data.frame(x = x_values, y1 = y1_values, y2 = y2_values)
+
+# Plot the two equations and shade the region between them within the interval [-1, 4]
+ggplot(subset(df, x >= -1 & x <= 4), aes(x = x)) +
+  geom_line(aes(y = y1), color = "blue", size = 1) +
+  geom_line(aes(y = y2), color = "red", size = 1) +
+  geom_ribbon(aes(ymin = pmin(y1, y2), ymax = pmax(y1, y2)), fill = "gray", alpha = 0.5) +
+  labs(x = "x", y = "y") +
+  theme_minimal()
+```
+
+
+
+## Exercise #5
+
+**A beauty supply store expects to sell** $110$ **flat irons during the next year. It costs** $\$3.75$ **to store one flat iron for one year. There is a fixed cost of** $\$8.25$ **for each order. Find the lot size and the number of orders per year that will minimize inventory costs.**
+
+"To minimize inventory costs for the beauty supply store, we need to find the optimal lot size (number of flat irons per order) and the number of orders per year. The total inventory cost consists of two components: the cost of holding inventory (storage cost) and the cost of placing orders.
+
+Let's denote the following variables:
+
+- O: The number of orders
+
+- S: Lot size
+
+- C: The inventory cost
+
+The total inventory cost (C) can be expressed as: $C=3.75 S + 8.25 O$ and the number of flat irons are expected to be sold next year can be expressed as $110=O \times S$ so we can solve for $S$ to substitute into the cost equation $(C(O))$ $\Rightarrow$ $S= \frac{110}{O}$
+
+$\Rightarrow C(O) = 3.75 (\frac{110}{O} + 8.25 O)$
+
+Now, Let's differentiate the equation $C(O)$:
+
+$\Rightarrow C'(O) = -3.75 (110) O^{-2} + 8.25$
+
+Solve $C'(O) = 0$ 
+
+
+$$
+\begin{align}
+-412.5 O^{-2} + 8.25&=0\\
+-412O^{-2}& = -8.25\\
+O^{-2} &= \frac{8.25}{412.5}\\
+&=0.02\\
+O^2&= 50\\
+O &\approx 7\\
+\text{substituting the value of O into} \quad S=\frac{110}{O} \quad \text{to find the value of S, yield}\\
+S &= \frac{110}{7} = 15.71428 \approx 16
+\end{align}
+$$
+
+
+So, the optimal lot size is 16 flat irons per order, and the number of orders per year is 7.
+
+**Note: I am not sure about the solution of this problem "Exercise #5" I used to be really good in calculus when I was undergrad. Can you please, Professor, Post your solution to this exercise?**
+
+## Exercise #6
+
+**Use integration by parts to solve the integral below.**
+$\int ln(9x) \cdot x^6 dx$
+
+For this problem, we are going to use the integration by parts rule: $\int uv dx = u \int v dx - \int u' (\int v dx) dx$
+
+Let: 
+
+
+$$
+\begin{align}
+u&=ln(9x)\\
+v&=x^6 \\
+u'&= \frac{1}{9x} \times 9 = \frac{1}{x} \\
+\int x^6 dx &= \frac{1}{7} x^7 \\
+\end{align}
+$$
+
+
+Let's substitute:
+
+
+$$
+\begin {align}
+\int ln(9x) \cdot x^6 &= ln(9x)(\frac{1}{7} x^7) - \int \frac{1}{x} (\frac{1}{7} x^7) dx\\
+&= \frac{1}{7} x^7 ln(9x) - \int \frac{x^6}{7} dx \\
+&= \frac{1}{7} x^7 ln(9x) - \frac{1}{7} (\frac{x^7}{7}) + C\\
+&= \frac {x^7 ln(9x)}{7} - \frac{x^7}{49} + C \\
+&= \frac{7 x^7 ln(9x) - x^7}{ 49} + C\\
+&= \frac{x^7 (7 ln(9x) -1)}{49} + C\\
+\boxed{\int ln(9x) \cdot x^6 =\frac{x^7 (7 ln(9x) -1)}{49} + C}
+\end{align}
+$$
+
+
+## Exercise #7
+
+**Determine whether** $f ( x )$ **is a probability density function on the interval** $[1, e^6]$ **If not, determine the value of the definite integral** $f(x) =\frac{1}{6x}$
+
+To determine if the function is  a probability density function, we need to check if:
+
+1. $f(X) > 0$ in the interval $[1, e^6]$
+
+2. $\int_{1}^{e^6} f(x) dx = 1$
+
+Let's do this:
+
+$x>0$ because $1<x<e^6$
+$\Rightarrow 6x >0$ so $\frac{1}{6x} > 0 \rightarrow f(x)>0$
+
+
+$$
+\begin{align}
+\int_{1}^{e^6} f(x) dx &= \int_{1}^{e^6} \frac{1}{6x}  dx  \\
+\frac{1}{6} \int_{1}^{e^6} \frac{1}{x}  dx &= \frac{1}{6} ln(x) \bracevert _1 ^{e^6} \\
+&= \frac{1}{6} [ln(e^6) - ln(1) ] \\
+&= \frac{1}{6} [6-0] = \frac{1}{6} (6) = 1
+\end{align}
+$$
+
+
+Check our answer:
+
+
+```{r }
+f3 <- function(x) {
+  return(1/(6*x))
+  }
+Area3 <- integrate (f3, lower=1, upper=exp(6) )
+print(Area3)
+```
+
+
+The function $f ( x )= \frac{1}{6x}$ **is a probability density function on the interval** $[1, e^6]$
