@@ -1,0 +1,468 @@
+---
+title: "SDaouki_Assignment15"
+author: "Saloua Daouki"
+date: "2024-05-04"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Loading the necessary libraries:
+
+```{r}
+library(Deriv) # for derivative
+library(MASS) #to convert to fractions
+library(matlib) # for integral
+```
+
+## Exercie # 1
+
+**Find the equation of the regression line for the given points. Round any final values to the nearest hundredth, if necessary.**
+
+(5.6,8.8), (6.3,12.4), (7,14.8), (7.7,18.2), (8.4,20.8)
+
+First, let's plot the data points:
+
+
+```{r }
+# The data points to be plotted
+x <- c(5.6, 6.3, 7, 7.7, 8.4)
+y <- c(8.8, 12.4, 14.8, 18.2, 20.8)
+
+# Creating the scatter plot
+plot(x, y, 
+     main = "Scatter Plot",   # Title of the plot
+     xlab = "X-axis",         # Label for the x-axis
+     ylab = "Y-axis ",        # Label for the y-axis
+     col = "blue",            # Color of the points
+     pch = 16)                # Shape of the points (16 for solid circles)
+
+```
+
+
+It seems that the points are following a linear, positive association, let's fit the points with a linear regression model, then display the equation of the line of the best fit.
+
+```{r}
+# The data points to be plotted
+x <- c(5.6, 6.3, 7, 7.7, 8.4)
+y <- c(8.8, 12.4, 14.8, 18.2, 20.8)
+
+# Creating the scatter plot
+plot(x, y, 
+     main = "Scatter Plot",   # Title of the plot
+     xlab = "X-axis",         # Label for the x-axis
+     ylab = "Y-axis ",        # Label for the y-axis
+     col = "blue",            # Color of the points
+     pch = 16)                # Shape of the points (16 for solid circles)
+
+# Fit linear regression
+fit <- lm(y ~ x)
+
+# Add regression line
+abline(fit, col = "red")
+```
+
+
+```{r}
+# Display the summary of the linear regression model
+summary(fit)
+```
+
+The equation of the line of the best fit is $y=4.2571x-14.8$ where the slope is the $4.2571$ and the y-intercept of is $-14.8$.
+
+Rounding to the nearest hundredths: $y=4.26x-14.8$
+
+
+## Exercise # 2:
+
+**Find all local maxima, local minima, and saddle points for the function given below. Write your answer(s) in the form ( x, y, z ). Separate multiple points with a comma.**
+
+$f(x,y)=24x-6xy^2 -8y^3$
+
+**First**, let's find the partial derivatives; we can use the following R-code to do so:
+
+
+```{r}
+# Define the function 
+f_expr <- expression(24*x - 6*x*y^2 - 8*y^3)
+
+# Compute the partial derivative of f with respect to x
+df_dx <- Deriv(f_expr, "x")
+
+# Print the expression for the partial derivative with respect to x
+print(df_dx)
+```
+
+
+$\Rightarrow: f_x(x,y)=24-6y^2$
+
+
+```{r}
+# Define the function 
+f_expr <- expression(24*x - 6*x*y^2 - 8*y^3)
+
+# Compute the partial derivative of f with respect to y
+df_dy <- Deriv(f_expr, "y")
+
+# Print the expression for the partial derivative with respect to y
+print(df_dy)
+```
+
+
+$\Rightarrow: f_y(x,y)=-12xy-24y^2$
+
+**Now,** we set the partial derivatives equal to $0$ to find the critical points:
+
+$$
+\begin{align}
+24-6y^2 &= 0\\
+-6y^2 &= -24\\
+y^2 &= 4\\
+y&= \pm 2
+\end{align}
+$$
+
+For $y=2$ : 
+
+$$
+\begin{align}
+-12xy-24y^2 & = 0 \\
+-12x(2)-24(2)^2 &= 0 \\
+-24x -96 &= 0 \\
+-24x &= 96 \\
+x &= -4
+\end{align}
+$$
+
+
+For $y=-2$ : 
+
+$$
+\begin{align}
+-12xy-24y^2 & = 0 \\
+-12x(-2)-24(-2)^2 &= 0 \\
+24x -96 &= 0 \\
+24x &= 96 \\
+x &= 4
+\end{align}
+$$
+
+So the critical points are $(-4,2)$ and $(4,-2)$
+
+
+**Second,** let's find the second partial derivatives and evaluate them at the critical points
+
+2nd derivative with respect to x then x:
+
+
+$$
+\begin{align}
+f_{xx}(x,y) &= \frac{\partial}{\partial x} (24-6y^2)\\
+&= 0
+\end{align}
+$$
+
+```{r}
+# Define the first derivative with respect to x 
+first_dx <- expression(24-6*y^2)
+
+# Compute the second partial derivative of f with respect to x, then x
+df_dxx <- Deriv(first_dx, "x")
+
+# Print the expression for the second partial derivative with respect to x, then x
+print(df_dxx)
+```
+
+
+2nd derivative with respect to y then y:
+
+
+$$
+\begin{align}
+f_{yy}(x,y) &= \frac{\partial}{\partial y} (-12xy-24y^2)\\
+&= -12x-48y
+\end{align}
+$$
+
+```{r}
+# Define the first derivative with respect to y 
+first_dy <- expression(-12*x*y - 24*y^2)
+
+# Compute the second partial derivative of f with respect to y, then y
+df_dyy <- Deriv(first_dy, "y")
+
+# Print the expression for the second partial derivative with respect to y, then y
+print(df_dyy)
+```
+
+
+2nd derivative with respect to x then y:
+
+
+$$
+\begin{align}
+f_{xy}(x,y) &= \frac{\partial}{\partial y} (24-6*y^2)\\
+&= -12y
+\end{align}
+$$
+
+```{r}
+# Define the first derivative with respect to x 
+first_dxy <- expression(24-6*y^2)
+
+# Compute the second partial derivative of f with respect to x, then y
+df_dxy <- Deriv(first_dxy, "y")
+
+# Print the expression for the second partial derivative with respect to x, then y
+print(df_dxy)
+```
+
+Now, let's compute $D$ the second derivative test:
+
+$D=f_{xx}(x_0,y_0)f_{yy}(x_0, y_0) - f^2_{xy} (x_0,y_0)$
+
+$(x_0,y_0)=(-4,2) \quad \Rightarrow$ the first term of $D$ is $0$ since $f_{xx}(x,y)=0$ so let's evaluate the critical points on $f_{xy}$:
+
+
+$f_{xy}(-4,2) = -12*2 = -24 \quad \Rightarrow D=(-24)^2 >0$
+
+$(-4,2)$ is a local minima
+
+$f_{xy}(4,-2) = -12*(-2) = 24 \quad \Rightarrow D=(24)^2 >0$
+
+$(4,-2)$ is a local minima
+
+
+```{r}
+# Define the function
+f <- function(x, y) {
+  return(24*x - 6*x*y^2 - 8*y^3)
+}
+
+# Generate data for plotting
+x <- seq(-10, 10, length.out = 100)
+y <- seq(-10, 10, length.out = 100)
+z <- outer(x, y, f)
+
+# Create 3D plot
+persp(x, y, z, 
+      main = "Surface plot of f(x, y)",
+      xlab = "x", ylab = "y", zlab = "f(x, y)",
+      theta = 30, phi = 30)
+```
+
+
+
+## Exercise # 3:
+
+**A grocery store sells two brands of a product, the "house" brand and a "name" brand. The manager estimates that if she sells the "house" brand for x dollars and the "name" brand for y dollars, she will be able to sell** $81 - 21x + 17y$ **units of the "house" brand and** $40 + 11x - 23y$ **units of the "name" brand.**
+**Step 1.** Find the revenue function $R ( x, y )$.
+
+$R(x,y) = P(x,y) \times D(x,y)$
+Where $P(x,y)$ is the price of goods, in this case each brand of products. And $D(x,y)$ is the the demand or the number of units will be sold.
+
+- For the "house" brand: $P_h(x,y) = x$ and $D_h(x,y) = 81-21x+17y$ 
+
+ 
+$$
+\begin{align}
+R_h(x,y) &= P_h(x,y) \times D_h(x,y)\\
+&= x(81-21x+17y)\\
+&= 81x - 21x^2 + 17yx
+\end{align}
+$$
+
+- For the "name" brand: $P_n(x,y) = y$ and $D_n(x,y) = 40 + 11x -23y$
+
+$$
+\begin{align}
+R_n(x,y) &= P_n(x,y) \times D_n(x,y)\\
+&= y(40 + 11x -23y)\\
+&= 40y + 11xy - 23y^2
+\end{align}
+$$
+
+$\Rightarrow $ The revenue function $R ( x, y )$ will be the total $R_h(x,y) + R_n(x,y)$
+
+$$
+\begin{align}
+R_h(x,y) + R_n(x,y) &= 81x - 21x^2 + 17yx + 40y + 11xy - 23y^2\\
+R(x,y)&= 81x-21x^2+28xy+40y-23y^2
+\end{align}
+$$
+
+**Step 2.** What is the revenue if she sells the "house" brand for $\$2.30$ and the "name" brand for $\$4.10$?
+
+We substitute $x=2.30$ and $y=4.10$ into $R(x,y)$ function:
+
+
+```{r}
+# Define the revenue function
+R_function <- function(x,y) {
+  return(81*x - 21*x^2 + 28*x*y + 40*y - 23*y^2)
+}
+
+# Define the values of x and y
+x <- 2.30
+y <- 4.10
+
+# Calculate the Revenue with the given prices
+Revenue <- R_function(x,y)
+cat("Revenue at x =", x, "and y =", y, "is ", Revenue, "dollars", "\n")
+```
+
+
+## Exercise # 4:
+
+**A company has a plant in Los Angeles and a plant in Denver. The firm is committed to produce a total of 96 units of a product each week. The total weekly cost is given by** $C(x,y) = \frac{1}{6} x^2 + \frac{1}{6} y^2 +7x +25y+700$ **where x is the number of units produced in Los Angeles and y is the number of units produced in Denver. How many units should be produced in each plant to minimize the total weekly cost?**
+
+**First,** let's find the partial derivatives $\frac{\partial}{\partial x} C(x,y)$ and $\frac{\partial}{\partial y} C(x,y)$
+
+
+```{r}
+# Define the function 
+Cost_expr <- expression(1/6 * x^2 + 1/6 * y^2 + 7*x + 25*y +700)
+
+# Compute the partial derivative of f with respect to x
+dC_dx <- Deriv(Cost_expr, "x")
+
+# Print the expression for the partial derivative with respect to x
+print(dC_dx)
+```
+
+
+$\Rightarrow \quad C_x(x,y) = \frac{1}{3} x + 7$ 
+
+
+```{r}
+# Compute the partial derivative of f with respect to y
+dC_dy <- Deriv(Cost_expr, "y")
+
+# Print the expression for the partial derivative with respect to y
+print(dC_dy)
+```
+
+$\Rightarrow \quad C_x(x,y) = \frac{1}{3} y + 25$
+
+
+**Second,** identify and classify the critical points:
+
+$$
+\begin{align}
+\frac{1}{3} x + 7 &= 0 \\
+x &= -21\\
+\frac{1}{3} y + 25 &=0 \\
+y &= -75
+\end{align}
+$$
+The critical point is $(-21, -75)$
+
+Second Derivative Test: $D=f_{xx}(x_0,y_0)f_{yy}(x_0, y_0) - f^2_{xy} (x_0,y_0)$
+
+```{r}
+# Compute the second derivative with respect to x then y
+dC_dxy <- Deriv(dC_dx, "y")
+
+# Print the second derivative with respect x then y
+print(dC_dxy)
+```
+ 
+$\Rightarrow \quad D=0$ so the test is inconclusive. **Something is wrong!** Let's do another way where we can use the information given that both plants has to produce 96 units;
+
+We know that "The firm is committed to produce a total of 96 units of a product each week" meaning that $x+y=96$ $\Rightarrow \quad y=96-x$
+
+Let's substitute the expression for y into the $C(x,y)$ function:
+
+$$
+\begin{align}
+C(x) &= \frac{1}{6} x^2 + \frac{1}{6} (96-x)^2 +7x +25(96-x)+700\\
+&= \frac{1}{6} x^2 + \frac{1}{6} (9216-192x+x^2) +7x +2400-25x+700\\
+&= \frac{1}{6} x^2 + 1536-32x+\frac{1}{6}x^2 +7x +2400-25x+700\\
+&= \frac{1}{3} x^2 -50x + 4636
+\end{align}
+$$
+Now. let's find the first derivative of $C(x)$ with respect with x:
+
+```{r}
+# Define the function
+C_exp <- expression(1/3 * x^2 -50*x + 4636)
+
+# Find the first derivative of C(x) with respect to x
+First_Deriv <- Deriv(C_exp, "x")
+
+# Print the first derivative of C(x)
+print(First_Deriv)
+```
+
+$C'(x)=\frac{2}{3}x-50$
+
+Let's find the critical point:
+
+$$
+\begin{align}
+\frac{2}{3}x-50 &= 0\\
+\frac{2}{3}x &= 50\\
+2x &= 150\\
+x &=75
+\end{align}
+$$
+
+To classify the critical point with $x=75$, we need to find the second derivative $C''(x)= (\frac{2}{3}x-50)' = \frac{2}{3}$
+
+Since the $C''(x) = \frac{2}{3}>0$, then $x=75$ is a minimum value; meaning that $x=75$ will minimize the cost. Next, we can find the corresponding value of $y$ that minimizes the cost:
+
+We have: $y=96-x$ So: $y=96-75$ $\Rightarrow \quad y= 21$
+
+**To minimize the total weekly cost, Los Angeles has to produce 75 units, while Denver should produce 21 units.**
+
+## Exercise # 5:
+
+**Evaluate the double integral on the given region.**
+
+$\int \int_R (e^{(8x+3y)} dA)$ ; $R: 2 \leq x \leq 4$ and $2 \leq y \leq 4$
+
+**Write your answer in exact form without decimals.**
+
+Let's evaluate the inner integral with respect to y first:
+
+
+$\int_{2}^{4} e^{(8x+3y)}dy$ using substitution: 
+
+$u=8x+3y$ and $du=3dy$
+
+$\Rightarrow \quad \frac{1}{3} \int_{2}^{4} e^u du = \frac{1}{3} (e^{(8x+3y)})_2^4 = \frac{1}{3} [e^{8x+12} - e^{8x+6}]$
+
+
+Now, We'll evaluate integral of $\frac{1}{3} [e^{8x+12} - e^{8x+6}]$ with respect to x:
+
+$$
+\begin{align}
+\int_2^4 (\frac{1}{3} [e^{8x+12} - e^{8x+6}])dx &= \frac{1}{3} [\int_2^4e^{8x+12}dx - \int_2^4e^{8x+6}dx]  \\
+\end{align}
+$$
+By substitution:
+
+let: $u=8x+12$,  $du=8dx$ and $v=8x+6$, $dv=8dx$
+
+We substitute:  
+
+
+$$
+\begin{align}
+ \frac{1}{3} [\int_2^4e^{8x+12}dx - \int_2^4e^{8x+6}dx] &= \frac{1}{3} [\int_2^4 \frac{1}{8} e^u du - \int_2^4 \frac{1}{8}e^vdv] \\
+ &= \frac{1}{24} (e^{8x+12})_2^4 - \frac{1}{24} (e^{8x+6})_2^4\\
+ &= \frac{1}{24} [(e^{44}-e^{28})-(e^{38}-e^{22})]
+\end{align}
+$$
+
+So the exact form without decimals of $\int \int_R (e^{(8x+3y)} dA)$ ; $R: 2 \leq x \leq 4$ and $2 \leq y \leq 4$ is $\frac{1}{24} (e^{44}-e^{28}-e^{38}+e^{22})$
+
+
+
