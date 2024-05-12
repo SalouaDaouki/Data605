@@ -1,0 +1,1147 @@
+---
+title: "SDaouki_Final_Project"
+author: "Saloua Daouki"
+date: "2024-05-06"
+output: 
+ html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::include_graphics("/Users/salouadaouki/Desktop/Data605/ANOVA_plot.pdf")
+knitr::include_graphics("/Users/salouadaouki/Desktop/Data605/scatterplot_matrix.pdf")
+knitr::include_graphics("/Users/salouadaouki/Desktop/Data605/residual_plots.png")
+```
+
+
+## Loading the necessary packages:
+
+```{r}
+library(knitr) # For formatting tables
+library(e1071) # for checking the skewness
+library(ggplot2) # For plots
+library(reshape2) # To reshape the data
+library(randomForest) #for feature importance
+library(dplyr)
+library(MASS)
+library(gridExtra)
+```
+
+## Loading and reading the data in R:
+
+```{r }
+Train_df <- read.csv("https://raw.githubusercontent.com/SalouaDaouki/Data605/main/train.csv")
+```
+
+## Exploring the data:
+
+### Glimpse of the data:
+
+```{r }
+# Display the structure of the data
+str(Train_df)
+```
+
+```{r}
+# Display the first few rows of the data:
+head(Train_df)
+```
+
+```{r}
+# Display the statistical properties of the data
+summary(Train_df)
+```
+
+```{r}
+# Check for missing values
+sum(is.na(Train_df))
+```
+
+### Checking the skewness of the quantitative variables:
+
+```{r}
+# Identify the numerical and categorical data variables
+numerical_vars <- sapply(Train_df, is.numeric)
+Categorical_vars <- sapply(Train_df, is.character)
+
+# Subset the data to include only quantitative variables
+numerical_data <- Train_df[, numerical_vars]
+Categorical_data <- Train_df[, Categorical_vars]
+
+# Calculate skewness for quantitative variables
+skewness_values <- sapply(numerical_data, skewness)
+print(skewness_values)
+```
+
+Based on the skewness level above, the LotArea has the greatest positive value, which means that this variable has distribution that is skewed to the right. Now, let's identify the variables that has positive level of skewness and order them in ascending order, so we can see of our choice of the independent varaible is the right decision:
+
+
+```{r}
+# Identify variables with positive skewness
+positive_skew_vars <- names(skewness_values[skewness_values > 0])
+
+# Sort variables based on skewness values in ascending order
+sorted_positive_skew_vars <- positive_skew_vars[order(skewness_values[skewness_values > 0])]
+
+# Print the names of variables with positive skewness sorted in ascending order
+print(sorted_positive_skew_vars)
+```
+
+Based on the calculated skewness, the independent variable I am choosing is Lot Area, so $X=LotArea$. The dependent variable is Sale Price, so $Y=SalePrice$.
+
+```{r}
+X <- Train_df$LotArea
+Y <- Train_df$SalePrice
+```
+
+## Calculating the probability:
+
+I am going to calculate the following probabilities:
+
+a.  P(X\>x \| Y\>y)
+
+b.  P(X\>x, Y\>y)
+
+c.  P(X\<x \| Y\>y)
+
+Where the small letter "x" is estimated as the 3d quartile of the X variable, and the small letter "y" is estimated as the 2d quartile of the Y variable.
+
+### P(X\>x \| Y\>y)
+
+$P(X>x | Y>y) = \frac{\text {Number of observations where X>x and Y>y}}{\text{Number of observations where Y>y}}$
+
+First, let's count the number of observations where both $X>x$ and $Y>y$:
+
+```{r}
+# Define the thresholds
+x_threshold <- 11602  # 3rd quartile of X (Lot Area)
+y_threshold <- 163000 # 2nd quartile or median of Y (Sale Price)
+
+# Filter the data where both X and Y exceed their thresholds
+filtered_Train_df <- Train_df[Train_df$LotArea > x_threshold & Train_df$SalePrice > y_threshold, ]
+
+# Count the number of observations in the filtered dataset
+num_observations_both_exceed <- nrow(filtered_Train_df)
+
+# Print the count
+print(num_observations_both_exceed)
+```
+
+Now, let's count the number of observations where $Y>y$:
+
+```{r}
+# Filter the data where only Y exceeds its threshold
+filtered_data_Y_exceeds <- Train_df[Train_df$SalePrice > y_threshold, ]
+
+# Count the number of observations in the filtered dataset
+num_observations_Y_exceeds <- nrow(filtered_data_Y_exceeds)
+
+# Print the count
+print(num_observations_Y_exceeds)
+```
+
+So the conditional probability that $X>x$ given that $Y>y$ y is $P(X>x | Y>y) = \fract{276}{728}$
+
+```{r}
+# Calculate the conditional probability where X>x given Y>y
+Cond_Prob1 <- round(num_observations_both_exceed/num_observations_Y_exceeds, 3)
+
+# Display the Conditional probability
+print(Cond_Prob1)
+```
+
+$\boxed {P(X>x | Y>y) \approx 0.379}$
+
+This probability suggests that given an observation with higher Sale Price of a house that exceeds the 2nd quartile ($\$163000$), there is 37.9% chance that those houses have a lot area that exceeds the 3rd quartile ($11602 ft^2$)
+
+### P(X\>x, Y\>y)
+
+$P(X>x , Y>y) = \frac{\text {Number of observations where X>x and Y>y}}{\text{Total number of observations}}$
+
+Based on the calculation on the previous subsection "P(X\>x \| Y\>y)", we know that the number of observations where $X>x$ and $Y>y$ is 276. And the total number of observations in the data set is $1460$:
+
+```{r}
+# Calculate the probability of both X>x and Y>y
+Prob2 <- round(num_observations_both_exceed/1460, 3)
+
+# Print the probability
+print(Prob2)
+```
+
+This probability suggests that there is only a chance of 18.9% that houses that are sold with relatively high price (exceeding the 2nd quartile), have also a big lot area that exceeds the 3rd quartile. In other words, there is a low occurrence of houses with both high sale price and large lot area.
+
+### P(X\<x \| Y\>y)
+
+$P(X<x | Y>y) = \frac{\text {Number of observations where X<x and Y>y}}{\text{Number of observations where Y>y}}$
+
+We Already found that the number of observations where $X>x$ and $Y>y$ is $276$. And the number of observations where $Y>y$ is $728$\> To find the number of observations where $X<x$ and $Y>y$ would be the difference between both: $728-276$
+
+```{r}
+# Number of observations where X<x and Y>y
+Obs_X_less_Y_more <- num_observations_Y_exceeds - num_observations_both_exceed
+
+# Probability of observations where X<x and Y>y
+Prob3 <- round(Obs_X_less_Y_more / num_observations_Y_exceeds, 3)
+
+# Display the probability
+print(Prob3)
+```
+
+This probability indicates that given houses with higher sale price, there is higher chance, 62.1%, that those houses have smaller lot area (less than 3rd quartile).
+
+```{r}
+# Create logical conditions for quartile categories
+x_below_3rd_quartile <- X <= x_threshold
+x_above_3rd_quartile <- X > x_threshold
+y_below_2nd_quartile <- Y <= y_threshold
+y_above_2nd_quartile <- Y > y_threshold
+
+# Create a table of counts based on quartile categories
+count_table <- table(x_below_3rd_quartile & y_below_2nd_quartile, x_below_3rd_quartile & y_above_2nd_quartile,
+                     x_above_3rd_quartile & y_below_2nd_quartile, x_above_3rd_quartile & y_above_2nd_quartile)
+
+# Assign row and column names
+rownames(count_table) <- c("X <= 3rd quartile", "X > 3rd quartile")
+colnames(count_table) <- c("Y <= 2nd quartile", "Y > 2nd quartile")
+
+# Display the count table
+print(count_table)
+```
+
+```{r}
+# Filter the data where both X and Y below their thresholds
+filtered_Train_df_both_leq <- Train_df[Train_df$LotArea <= x_threshold & Train_df$SalePrice <= y_threshold, ]
+
+# Count the number of observations in the filtered dataset where both X and Y are less or equal to their thresholds
+num_observations_both_lessEq <- nrow(filtered_Train_df_both_leq)
+
+# Print the count
+print(num_observations_both_lessEq)
+```
+
+```{r}
+# Filter the data where X<=x and Y>y
+filtered_Train_df_X_leq_Y_g <- Train_df[Train_df$LotArea <= x_threshold & Train_df$SalePrice > y_threshold, ]
+
+# Count the number of observations in the filtered dataset 
+num_observations_X_leq_Y_g <- nrow(filtered_Train_df_X_leq_Y_g)
+
+# Print the count
+print(num_observations_X_leq_Y_g )
+```
+
+
+```{r}
+# Filter the data where X>x and Y<=y
+filtered_Train_df_X_leq_Y_g <- Train_df[Train_df$LotArea > x_threshold & Train_df$SalePrice <= y_threshold, ]
+
+# Count the number of observations in the filtered dataset 
+num_observations_X_g_Y_leq <- nrow(filtered_Train_df_X_leq_Y_g)
+
+# Print the count
+print(num_observations_X_g_Y_leq )
+```
+
+
+Let's create a table with all counts that we calculated:
+
+```{r}
+# Create the table matrix
+table_matrix <- matrix(c(num_observations_both_lessEq, num_observations_X_leq_Y_g, 
+                         num_observations_X_g_Y_leq, num_observations_both_exceed),
+                       nrow = 2, byrow = TRUE)
+
+# Add row and column names
+rownames(table_matrix) <- c("<=3rd Qu", ">3rd Qu")
+colnames(table_matrix) <- c("<=2nd Qu", ">2nd Qu")
+
+# Add totals for each row and column
+table_matrix <- cbind(table_matrix, rowSums(table_matrix))
+table_matrix <- rbind(table_matrix, colSums(table_matrix))
+
+# Assign the row and column names to the table object
+dimnames(table_matrix) <- list("x/y" = c("<=3rd Qu", ">3rd Qu", "Total"),
+                               "x/y" = c("<=2nd Qu", ">2nd Qu", "Total"))
+
+# Convert to a table object
+table_num <- as.table(table_matrix)
+
+# Print the table
+print(table_num)
+```
+
+Let A be the new variable counting those observations above the 3d quartile for X, and let B be the new variable counting those observations above the 2d quartile for Y. Does $P(A|B)=P(A)P(B)$?
+
+```{r}
+# Display the probability of A given B
+Cond_Prob1
+
+# Calculate P(A) x P(B)
+Prob_A_and_B <- round(((num_observations_X_g_Y_leq + num_observations_both_exceed) /1460)*(num_observations_Y_exceeds/1460),3)
+
+# Print the probability of A and B
+print(Prob_A_and_B)
+```
+
+Since $P(A|B) \neq P(A) \times P(B)$, we can conclude that A and B are not independent.
+
+let's evaluate by running a Chi Square test for association:
+
+```{r}
+# Define the calculated number of observations
+observed <- matrix(c(643, 452, 89, 276), nrow = 2, byrow = TRUE)
+
+# Perform chi-square test
+chi_square_result <- chisq.test(observed)
+
+# Print the result
+print(chi_square_result)
+```
+
+Based on the chi square result above, we can reject the null hypothesis of independence, meaning that the variables are dependent (as we concluded above mathematically) and there is a significant association between the variables. So, splitting the training data in this fashion doesn't make them independent.
+
+
+## Univariate descriptive statistics:
+
+First let's plot histograms for the numerical variables in the training data (Train_df)
+
+```{r}
+# Univariate plots for numerical variables
+for (col in names(Train_df)[numerical_vars]) {
+  print(ggplot(Train_df, aes_string(x = col)) +
+          geom_histogram(fill = "skyblue", color = "black") +
+          labs(title = paste("Histogram of", col), x = col, y = "Frequency"))
+}
+```
+
+
+Now, i am going to plot box plots for each of the categorical variables against the SalePRice, to visualize which variable has stronger influence on the sale price of houses,
+
+
+```{r}
+# Convert categorical variables to factors
+for (col in names(Categorical_data)) {
+  Categorical_data[[col]] <- factor(Categorical_data[[col]])
+}
+
+# Univariate box plots for categorical variables with SalePrice
+for (col in names(Categorical_data)) {
+  print(ggplot(data = cbind(Categorical_data, numerical_data), aes_string(x = col, y = "SalePrice")) +
+          geom_boxplot(fill = "skyblue", color = "black") +
+          labs(title = paste("Boxplot of", col), x = col, y = "Sale Price"))
+}
+```
+
+
+To assess the correlation between the categorical variables and the SalePrice of houses, we can use the Analysis of Variance technique (ANOVA) as follows:
+
+
+```{r}
+# Convert categorical variables to factors
+categorical_data <- lapply(Categorical_data, factor)
+
+# Combine numerical and categorical data
+combined_data <- cbind(numerical_data, categorical_data)
+
+# Perform ANOVA for each categorical variable against SalePrice
+anova_results <- lapply(categorical_data, function(cat_var) {
+  anova_result <- aov(SalePrice ~ cat_var, data = combined_data)
+  return(summary(anova_result))
+})
+
+# Extract p-values from ANOVA results
+p_values <- lapply(anova_results, function(anova_result) {
+  return(anova_result[[1]][["Pr(>F)"]][1])
+})
+
+# Combine variable names and p-values into a data frame
+result_df <- data.frame(Variable = names(p_values), P_Value = unlist(p_values))
+
+# Print the result
+print(result_df)
+
+```
+
+
+It's little overwhelming to get any conclusion about the association between those variables and the SalePrice from the table, let's visualize the results in a bar plot:
+
+
+```{r}
+# Sort result_df by p-values
+sorted_result_df <- result_df[order(result_df$P_Value), ]
+
+# Open a PDF device with specified width and height
+pdf("ANOVA_plot.pdf", width = 10, height = 8)
+
+# Increase margin space for bottom
+par(mar = c(8, 5, 4, 2) + 0.1)
+
+# Create a bar plot with a logarithmic scale for the y-axis
+barplot(log10(sorted_result_df$P_Value), names.arg = sorted_result_df$Variable, las = 2, col = "skyblue",
+        main = "ANOVA p-values for Categorical Variables vs. SalePrice",
+        ylab = "log10(p-value)", xlab = "")
+
+# Add x-axis label (secondary label)
+mtext("Categorical Variables", side = 1, line = 6)
+
+# Add a horizontal line at significance level (e.g., 0.05)
+abline(h = log10(0.05), col = "red", lty = 2)
+
+# Close the PDF device
+dev.off()
+```
+
+
+![ANOVA Plot](/Users/salouadaouki/Desktop/Data605/ANOVA_plot.pdf)
+
+
+
+Now it is evident that "Neighborhood" component has the tallest bar; the smallest p-value, which indicates there is a strong association between the sale price of the houses and the neighborhood. In other words, there are significant differences in SalePrice across different neighborhoods. On the other hands, the "utilities" has the biggest p-value; there is a weak association.
+
+
+## Scatter plot of X and Y
+
+Now, let's graph a scatter plot of X, "LotArea" and Y, "SalePrice":
+
+```{r}
+# Plot SalePrice (Y) against LotArea (X)
+plot(Train_df$LotArea, Train_df$SalePrice, 
+     xlab = "LotArea", ylab = "SalePrice", 
+     main = "Scatterplot of LotArea vs SalePrice")
+```
+
+Most of the data points are clustered on the left side of the plot, which indicates that the distribution is skewed. To better visualize the data, we can apply logarithmic transformation to both variables to spread out the data points evenly:
+
+```{r}
+# Log transformation
+plot(log(Train_df$LotArea), log(Train_df$SalePrice), 
+     xlab = "Log(LotArea)", ylab = "Log(SalePrice)", 
+     main = "Scatterplot of Log(LotArea) vs Log(SalePrice)")
+```
+
+
+## 95% CI for the difference in the mean 
+
+
+Now, let's calculate the 95% confidence interval for the difference in means of two variables (LotArea and SalePrice):
+
+
+```{r}
+# Perform t-test for the difference in means
+t_test_result <- t.test(Train_df$LotArea, Train_df$SalePrice)
+
+# Extract confidence interval from the t-test result
+ci_lower <- t_test_result$conf.int[1]
+ci_upper <- t_test_result$conf.int[2]
+
+# Print the confidence interval
+cat("95% Confidence Interval for the difference in means: (", ci_lower, ", ", ci_upper, ")\n")
+```
+
+
+The interval above indicates that the SalePrice tends to be significantly lower than LotArea within that range.
+
+Now let's derive a correlation matrix for two of the quantitative variables; LotArea and PriceSale. The variables X and Y are already defined before as LotArea and SalePrice respectively:
+
+
+```{r}
+# Calculate the correlation coefficient between X and Y
+correlation_coefficient <- cor(X, Y)
+
+# Print the correlation coefficient
+print(correlation_coefficient)
+```
+
+
+The correlation coefficient is positive, which indicates that as LotArea increases, the SalePrice increases as well. The number, 0.2638434, suggests a weak positive correlation between LotArea and SalePrice.
+
+Correlation matrix for both variables; LotArea and SalePrice:
+
+
+```{r}
+# Create a subset of your dataset with only the two variables of interest
+subset_df <- Train_df[, c("LotArea", "SalePrice")]
+
+# Calculate the correlation matrix
+correlation_matrix <- cor(subset_df)
+
+# Print the correlation matrix
+print(correlation_matrix)
+```
+
+
+Now, let's test the hypothesis that the correlation between these variables is 0 and provide a 99% confidence interval:
+
+```{r}
+# Test the hypothesis that the correlation between X and Y is 0
+cor_test_result <- cor.test(X, Y)
+
+# Print the result
+print(cor_test_result)
+
+# Extract the confidence interval
+ci_lower <- cor_test_result$conf.int[1]
+ci_upper <- cor_test_result$conf.int[2]
+
+# Print the 99% confidence interval
+cat("99% Confidence Interval for the correlation coefficient:", ci_lower, "to", ci_upper, "\n")
+```
+
+The p-value, 2.2e-16, is very small which indicates strong evidence against the null hypothesis (that the correlation between these variables is 0). Therefore, we reject the null hypothesis, suggesting that the correlation between LotArea and SalePrice is statistically significant.
+The 99% Confidence Interval for the correlation coefficient: 0.2154574 to 0.3109369, emphasizes that the correlation coefficient is not 0. Meaning that the true correlation coefficient falls within the indicated interval.
+The "sample estimates", estimates the correlation coefficient which I calculated before; 0.2638434.
+
+
+Next, we are going to invert the correlation matrix, which is going to be the precision matrix and it will contain variance inflation factors on the diagonal.
+
+```{r}
+# Invert the correlation matrix
+inverted_matrix <- solve(correlation_matrix)
+
+# Print the inverted matrix
+print(inverted_matrix)
+```
+
+
+## Principle Components Analysis (PCA):
+
+First, let's multiply both correlation matrices, then conduct the PCA:
+
+```{r}
+# Multiply correlation matrix by inverted matrix
+cor_by_invert <- correlation_matrix %*% inverted_matrix
+
+# Multiply inverted matrix by correlation matrix
+invert_by_cor <- inverted_matrix %*% correlation_matrix
+
+# Principal Components Analysis (PCA)
+pca_cor_by_invert <- princomp(cor_by_invert)
+pca_invert_by_cor <- princomp(invert_by_cor)
+
+# Summary of PCA results
+summary(pca_cor_by_invert)
+summary(pca_invert_by_cor)
+```
+
+**For "pca_cor_by_invert":**
+
+- *Comp.1:* This component has a standard deviation of approximately 0.7071068 and explains 100% of the variance. 
+
+- *Comp.2: * This component has a standard deviation close to zero (3.725290e-09) and explains a very tiny proportion of the variance (close to zero).
+
+**For "pca_invert_by_cor":**
+
+- *Comp.1:* Similar to **'pca_cor_by_prec'**, this component has a standard deviation of approximately 0.7071068 and explains 100% of the variance, capturing all the variability in the data.
+
+- *Comp.2:* This component has a standard deviation of zero and explains none of the variance. It doesn't contribute meaningfully to the understanding of the data.
+
+Based on the skewness level of the variables of the data 'Train_df', the variable 'LotArea' has level of skewness of over 12, which indicates that it has a right skewed distribution. Let's shift it so that the minimum value is above zero. To do that, we can add a constant value to each observation. This constant value should be at least equal to the absolute value of the smallest negative value in the variable, plus a small margin to ensure that the minimum value becomes positive.
+
+```{r}
+# Compute the minimum value of LotArea
+min_LotArea <- min(X)
+
+# Compute the shifting constant
+shift_constant <- abs(min_LotArea) + 1  # Add a small margin
+
+# Shift LotArea by adding the constant to each observation
+shifted_LotArea <- X + shift_constant
+```
+
+
+The minimum LotArea is 1300, which makes the shift constant is 1301. Let's check the minimum of the 'shifted_LotArea' if it is above 0:
+
+```{r}
+min(shifted_LotArea)
+```
+
+
+Let's fit an exponential probability density function:
+
+```{r}
+# Fit an exponential distribution to the shifted LotArea variable
+fit_exp <- fitdistr(shifted_LotArea, "exponential")
+
+# Print the fitted parameters
+print(fit_exp)
+```
+
+
+The estimated rate parameter $\lambda$ = 8.461792e-05 suggests that the shifted LotArea values follow an exponential distribution, with an average rate of occurrence of approximately 8.461792e-05 per unit. The small standard error (2.214552e-06) indicates a relatively precise estimation of the rate parameter.
+
+
+Now, let's find the optimal value of $\lambda$ for this distribution, and then take 1000 samples from this exponential distribution using this value.
+
+
+```{r}
+# Optimal value of λ using MLE
+optimal_lambda <- fit_exp$estimate
+
+# Generate 1000 samples from the exponential distribution using the optimal λ
+set.seed(123)  # for reproducibility
+samples <- rexp(1000, rate = optimal_lambda)
+
+# Display the first few samples
+head(samples)
+```
+
+
+The optimal $\lambda$ is very close to the estimated $\lambda$: optimal lambda (8.46e-05) $\approx$ estimated lambda (8.461792e-05).
+
+
+
+## Histogram of the original and shifted Lot Area:
+
+
+The values in the sample seem very large, we can visualize the data and the fitted distribution to assess the goodness of fit. To do this, we can create a histogram of the data along with the probability density function (PDF) of the fitted distribution:
+
+```{r}
+# Plot histogram of the data
+hist(shifted_LotArea, freq = FALSE, breaks = "FD", main = "Histogram of Shifted LotArea",
+     xlab = "Shifted LotArea", ylab = "Density")
+
+# Add the probability density function (PDF) of the fitted exponential distribution
+curve(dexp(x, rate = optimal_lambda), add = TRUE, col = "red", lwd = 2)
+
+# Add a legend
+legend("topright", legend = c("Histogram", "Fitted Exponential PDF"),
+       col = c("black", "red"), lwd = c(1, 2), bty = "n")
+```
+
+It seems that the histogram and the PDF closely align, that suggests a good fit.
+After visualizing the histogram of the shifted LotArea, we can plot a histogram of the original LotArea and compare it to the shifted one.
+
+Let's plot both histogram, side-to-side, for better comparison:
+
+
+```{r}
+# Set up the plotting area
+par(mfrow = c(1, 2))
+
+# Plot histogram of the original LotArea variable
+hist(X, freq = FALSE, breaks = "FD", main = "Histogram of Original LotArea",
+     xlab = "Original LotArea", ylab = "Density")
+
+# Plot histogram of the shifted LotArea variable
+hist(shifted_LotArea, freq = FALSE, breaks = "FD", main = "Histogram of Shifted LotArea",
+     xlab = "Shifted LotArea", ylab = "Density")
+
+# Add the probability density function (PDF) of the fitted exponential distribution to the second plot
+curve(dexp(x, rate = optimal_lambda), add = TRUE, col = "red", lwd = 2)
+
+# Add a legend to the second plot
+legend("topright", legend = c("Shifted LotArea", "Fitted Exponential PDF"),
+       col = c("black", "red"), lwd = c(1, 2), bty = "n")
+
+# Reset the plotting area
+par(mfrow = c(1, 1))
+```
+
+Both histograms look almost the same shape, this indicates that the shifting process didn't have significant impact on the distribution of the variable. So, the goodness of fit of the histogram of shifted LotArea and the similarity in distribution between both, original and shifted Lot Area suggest that the exponential distribution and the shifting process are appropriate for describing the data.
+
+Nest, let's use the exponential pdf to find the 5th and 95th percentiles using the cumulative distribution function (CDF). 
+
+## The Cumulative Distribution Function (CDF)
+
+```{r}
+# Calculate the 5th percentile using the cumulative distribution function (CDF)
+fifth_percentile <- qexp(0.05, rate = optimal_lambda)
+
+# Calculate the 95th percentile using the cumulative distribution function (CDF)
+ninety_fifth_percentile <- qexp(0.95, rate = optimal_lambda)
+
+# Print the results
+print(paste("5th percentile:", fifth_percentile))
+print(paste("95th percentile:", ninety_fifth_percentile))
+```
+
+
+In this step, we are going to generate a 95% confidence interval from the empirical data, assuming normality. 
+
+
+```{r}
+# Calculate the sample mean and standard deviation
+sample_mean <- mean(shifted_LotArea)
+sample_sd <- sd(shifted_LotArea)
+
+# Calculate the standard error of the mean
+se_mean <- sample_sd / sqrt(length(shifted_LotArea))
+
+# Calculate the margin of error for a 95% confidence interval (assuming normality)
+margin_of_error <- qnorm(0.975) * se_mean
+
+# Calculate the lower and upper bounds of the confidence interval
+lower_bound <- sample_mean - margin_of_error
+upper_bound <- sample_mean + margin_of_error
+
+# Print the confidence interval
+print(paste("95% Confidence Interval (assuming normality): [", round(lower_bound, 2), ",", round(upper_bound, 2), "]"))
+```
+
+
+The interval shown above indicates that we can be 95% confident that the true population mean of the shifted LotArea variable falls within this range.  
+
+Now, we are going to provide the empirical 5th percentile and 95th percentile of the data.
+
+```{r}
+# Calculate the empirical 5th percentile
+empirical_5th_percentile <- quantile(shifted_LotArea, 0.05)
+
+# Calculate the empirical 95th percentile
+empirical_95th_percentile <- quantile(shifted_LotArea, 0.95)
+
+# Print the results
+print(paste("Empirical 5th percentile:", empirical_5th_percentile))
+print(paste("Empirical 95th percentile:", empirical_95th_percentile))
+```
+
+
+- The empirical 5th percentile of the data is 4612.7 $ft^2$, which indicates that 5% of the houses in the dataset have a lot area of 4612.7 square feet or smaller.
+
+- The empirical 95th percentile of the data is 18702.15 $ft^2$, this indicates that 95% of the houses in the dataset have a lot area of 18702.15 square feet or smaller.
+
+
+Lot area plays a significant role in determining the sale price of houses, but its impact is influenced by various factors. So, we will perform regression modeling to check the influence of other variables of the data in Sale Price.
+
+## Regression Model:
+
+
+```{r}
+# Create a new graphics device with larger dimensions
+pdf("scatterplot_matrix.pdf", width = 10, height = 10)
+pairs(numerical_data, gap = 0.5)
+dev.off()  # Close the graphics device after plotting
+```
+
+
+![Scatter Plot MAtrix](/Users/salouadaouki/Desktop/Data605/scatterplot_matrix.pdf)
+
+
+
+### Identifying Potential Predictors:
+
+
+Let's compute the correlation matrix for the entire subset that includes only the numerical variables:
+
+```{r}
+# Compute the correlation matrix
+correlation_matrix_numerical <- cor(numerical_data)
+
+# Print the correlation matrix
+print(correlation_matrix_numerical)
+```
+
+Let's visualize the correlation matrix on a heat map and highlight the variables with strong correlation with the sale price:
+
+```{r}
+# Convert the correlation matrix to long format
+correlation_long <- melt(correlation_matrix_numerical)
+
+# Plot heatmap
+ggplot(correlation_long, aes(Var1, Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                       midpoint = 0, limit = c(-1,1), space = "Lab", 
+                       name="Correlation") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 12, hjust = 1)) +
+  coord_fixed()
+
+# 3. Highlight the cells corresponding to strong correlations with sale price
+strong_correlation_threshold <- 0.6  
+
+# Find variables strongly correlated with sale price
+strong_correlation_with_saleprice <- correlation_matrix[,"SalePrice"] >= strong_correlation_threshold
+
+# Highlight cells with strong correlation
+ggplot(correlation_long, aes(Var1, Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                       midpoint = 0, limit = c(-1,1), space = "Lab", 
+                       name="Correlation") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 12, hjust = 1)) +
+  coord_fixed() +
+  geom_tile(data = correlation_long[strong_correlation_with_saleprice, ], 
+            aes(Var1, Var2), fill = "black", color = "black")
+```
+
+
+This is hare to read, let's split the numerical data into subset and plot the heat map of the variables against the SalePrice:
+
+```{r}
+# Set the number of subsets
+num_subset <- 5
+
+# Split numerical data into subsets (excluding SalePrice)
+subsets <- split(numerical_data[, -which(names(numerical_data) == "SalePrice")], 1:num_subset)
+
+# Create a list to store correlation matrices
+correlation_matrices <- vector("list", length = num_subset)
+
+# Calculate correlation matrices for each subset
+for (i in 1:num_subset) {
+  # Combine SalePrice with the subset
+  subset_with_saleprice <- cbind(subsets[[i]], SalePrice = numerical_data$SalePrice)
+  # Calculate correlation matrix
+  correlation_matrices[[i]] <- cor(subset_with_saleprice)
+}
+
+# Plot heatmaps for each correlation matrix
+for (i in 1:num_subset) {
+  # Convert the correlation matrix to long format
+  correlation_long <- melt(correlation_matrices[[i]])
+  
+  # Plot heatmap
+  ggplot(correlation_long, aes(Var1, Var2, fill = value)) +
+    geom_tile(color = "white") +
+    scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                         midpoint = 0, limit = c(-1,1), space = "Lab", 
+                         name = "Correlation") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 12, hjust = 1)) +
+    coord_fixed() +
+    ggtitle(paste("Subset", i)) +  # Add subset number to the title
+    theme(plot.title = element_text(hjust = 0.5))  # Center the title
+}
+```
+
+The error that occurs after running the code above indicates that there maybe row names that are duplicated, also the standard deviation is zero suggests that there are some variables that might have constant value across all observations. Let's fix this by also handling if there is any missing data, then re-run the code:
+
+
+```{r}
+# Check for duplicate variable names
+duplicated_names <- duplicated(names(numerical_data))
+if (any(duplicated_names)) {
+  print("Duplicate variable names detected:")
+  print(names(numerical_data)[duplicated_names])
+  # Rename variables if necessary
+  names(numerical_data)[duplicated_names] <- make.unique(names(numerical_data)[duplicated_names])
+}
+```
+
+
+```{r}
+# Identify constant variables
+constant_vars <- apply(numerical_data, 2, function(x) {
+  all(diff(x, na.rm = TRUE) == 0, na.rm = TRUE)  
+})
+
+# Print constant variables
+if (any(constant_vars)) {
+  print("Constant variables detected:")
+  print(names(numerical_data)[constant_vars])
+} else {
+  print("No constant variables detected.")
+}
+
+# Remove constant variables from numerical_data
+numerical_data <- numerical_data[, !constant_vars, drop = FALSE]
+
+# Check for missing values
+missing_values <- apply(numerical_data, 2, function(x) {
+  any(is.na(x))
+})
+
+# Print variables with missing values
+if (any(missing_values)) {
+  print("Variables with missing values detected:")
+  print(names(numerical_data)[missing_values])
+} else {
+  print("No missing values detected.")
+}
+```
+
+
+Based on the output above, the constant value issue was resolved. Also, there are three variables that have missing values, let's handle them by replacing them with the mean:
+
+
+```{r}
+# Impute missing values with mean
+numerical_data$LotFrontage[is.na(numerical_data$LotFrontage)] <- mean(numerical_data$LotFrontage, na.rm = TRUE)
+numerical_data$MasVnrArea[is.na(numerical_data$MasVnrArea)] <- mean(numerical_data$MasVnrArea, na.rm = TRUE)
+numerical_data$GarageYrBlt[is.na(numerical_data$GarageYrBlt)] <- mean(numerical_data$GarageYrBlt, na.rm = TRUE)
+
+# Re-check for missing values
+missing_values <- apply(numerical_data, 2, function(x) {
+  any(is.na(x))
+})
+
+# Print variables with missing values (should be empty now)
+if (any(missing_values)) {
+  print("Variables with missing values detected:")
+  print(names(numerical_data)[missing_values])
+} else {
+  print("No missing values detected.")
+}
+```
+
+
+```{r}
+#Calculate the correlation matrix again after handling the missing data and the constant values
+correlation_matrix_New <- cor(numerical_data)
+
+print(correlation_matrix_New)
+```
+
+
+
+
+```{r}
+# Function to calculate correlation matrix and plot heatmap for a subset
+plot_correlation_heatmap <- function(subset_data, subset_name) {
+  # Calculate correlation matrix
+  correlation_matrix <- cor(subset_data)
+  
+  # Find variables strongly correlated with SalePrice
+  strong_correlation_with_saleprice <- correlation_matrix["SalePrice", ] >= strong_correlation_threshold
+  
+  # Convert correlation matrix to long format
+  correlation_long <- melt(correlation_matrix_New)
+  
+  # Plot heatmap
+  ggplot(correlation_long, aes(Var1, Var2, fill = value)) +
+    geom_tile(color = "white") +
+    scale_fill_gradient2(low = "blue", high = "red", mid = "white",
+                         midpoint = 0, limit = c(-1, 1), space = "Lab",
+                         name = "Correlation") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 12, hjust = 1)) +
+    coord_fixed() +
+    ggtitle(paste("Correlation Heatmap -", subset_name)) +  # Add subset name to title
+    theme(plot.title = element_text(hjust = 0.5)) +  # Center the title
+    geom_tile(data = correlation_long[strong_correlation_with_saleprice, ],
+              aes(Var1, Var2), fill = "black", color = "black")  # Highlight strong correlations with SalePrice
+}
+
+# Set threshold for strong correlation with SalePrice
+strong_correlation_threshold <- 0.5
+
+# Split numerical variables into subsets
+num_subset <- 10  # Adjust as needed
+subset_size <- ceiling((length(numerical_data) - 1) / num_subset)  # -1 to exclude SalePrice
+subset_names <- paste0("Subset", 1:num_subset)
+
+# Create subsets
+subsets <- lapply(1:num_subset, function(i) {
+  start_index <- (i - 1) * subset_size + 1
+  end_index <- min(i * subset_size, length(numerical_data))
+  subset_data <- numerical_data[, start_index:end_index]  # Subset without SalePrice
+  subset_data$SalePrice <- numerical_data$SalePrice  # Add SalePrice as the last column
+  return(subset_data)
+})
+
+# Plot correlation heatmaps for each subset
+plots <- lapply(1:num_subset, function(i) {
+  plot_correlation_heatmap(subsets[[i]], subset_names[i])
+})
+
+# Arrange and display the plots
+grid.arrange(grobs = plots, ncol = 2)
+```
+
+It is still hard to read the heat map even though the data was split into 5 then 10 subsets. Let's run the full linear model using all numerical variables as predictors for SalePrice.
+
+```{r}
+# Fit linear model
+Full_model <- lm(SalePrice ~ ., data = numerical_data)
+
+# Summary of the model
+summary(Full_model)
+```
+
+Based on the summary of the full regression model, the predictors that explain the Sale price are 'MSSubClass' (The building class), 'LotArea' (Lot size in square feet), 'OverallQual' (Overall material and finish quality), 'OverallCond' (Overall condition rating), 
+YearBuilt' (Original construction date), 'MasVnrArea' (Masonry veneer area in square feet), 'BsmtFinSF1' (Type 1 finished square feet), 'X1stFlrSF' (First Floor square feet), 'X2ndFlrSF' (Second floor square feet), 'BsmtFullBath' (Basement full bathrooms), 'BedroomAbvGr' (Number of bedrooms above ground), 'TotRmsAbvGrd' (Total rooms above grade (does not include bathrooms)), 'GarageCars' (Size of garage in car capacity), 'WoodDeckSF' (Wood deck area in square feet), and  'ScreenPorch' (Screen porch area in square feet).
+
+Now, let’s perform the backward process elimination:
+
+
+```{r}
+# Assuming model is your full linear regression model
+half_full_model <- lm(SalePrice ~ MSSubClass + LotArea + OverallQual + OverallCond + 
+                  YearBuilt + MasVnrArea + BsmtFinSF1 + X1stFlrSF + X2ndFlrSF + 
+                  BsmtFullBath + BedroomAbvGr + TotRmsAbvGrd + GarageCars + 
+                  WoodDeckSF + ScreenPorch, data = numerical_data)
+
+# Step 1: Get summary of the full model
+summary(half_full_model)
+
+# Step 2: Backward elimination
+while(any(coef(summary(half_full_model))[, 4] > 0.05)) {
+  max_p_value_index <- which.max(coef(summary(half_full_model))[, 4])
+  if (max_p_value_index == 1) {
+    break  # Intercept should not be removed
+  }
+  half_full_model <- update(half_full_model, . ~ . - names(coef(half_full_model))[max_p_value_index])
+}
+
+# Step 3: Final summary of the model after elimination
+summary(half_full_model)
+```
+
+
+### Residual Analysis:
+
+#### Residuals vs. Fitted Values Plot
+
+
+```{r}
+plot(fitted(half_full_model), residuals(half_full_model),
+     xlab = "Fitted values", ylab = "Residuals",
+     main = "Residuals vs Fitted")
+abline(h = 0, col = "red")
+```
+
+The residuals are not randomly scattered around 0; the relationship between the predictors and the response variable may not be purely linear. 
+
+#### Normal Q-Q Plot: 
+
+```{r}
+qqnorm(residuals(half_full_model))
+qqline(residuals(half_full_model))
+```
+
+By looking at the tails of the Q-Q plot, they seem that they are curved, which indicates that the residuals are skewed; they are not symmetrically distributed around zero.
+
+
+#### Residuals vs. Predictor Plots
+
+
+```{r}
+png("residual_plots.png", width = 800, height = 800)
+par(mfrow = c(3, 3))
+for (predictor in names(half_full_model$model)[-1]) {
+  plot(half_full_model$model[[predictor]], residuals(half_full_model),
+       xlab = predictor, ylab = "Residuals",
+       main = paste("Residuals vs", predictor))
+}
+dev.off()
+```
+
+
+![Residual Plots](/Users/salouadaouki/Desktop/Data605/residual_plots.png)
+
+
+
+
+Some of the plots show a pattern of vertical lines, that suggests that the residuals don't have constant vaiance.
+
+#### Scale-Location Plot: 
+
+```{r}
+sqrt_abs_residuals <- sqrt(abs(residuals(half_full_model)))
+plot(fitted(half_full_model), sqrt_abs_residuals,
+     xlab = "Fitted values", ylab = "Square root of absolute residuals",
+     main = "Scale-Location Plot")
+abline(h = 0, col = "red")
+```
+The points are clustered in the range of [0e+00, 4e+05], this indicates that the spread of residuals is relatively consistent across most of the fitted values. The presence of outliers outside the range mentioned above suggests that there might be specific observations where the model's predictions are notably inaccurate. 
+
+
+#### Residuals vs. Leverage Plot:
+
+
+```{r}
+plot(half_full_model, which = 5)
+```
+
+
+## Exponential Model:
+
+The Residuals vs. Fitted Values plot shows a smile-like shape which suggest that there is non-linear relationship between the predictors and the SalePrice. Let's try exponential model and see what we can get:
+
+```{r}
+# Step 1: Transform the Response Variable
+numerical_data$LogSalePrice <- log(numerical_data$SalePrice)
+
+# Step 2: Fit a Linear Regression Model
+exp_model <- lm(LogSalePrice ~ LotArea, data = numerical_data)
+
+# Step 3: Back-Transform the Coefficients
+exp_model_coef <- exp(coef(exp_model))
+
+# Print the coefficients
+print(exp_model_coef)
+```
+
+The coefficient is equal to 1.00001 which indicates that the there is no strong exponential relationship between these variables.
+
+```{r}
+# Evaluate model fit
+summary(exp_model)
+```
+
+The values above suggest that LotArea is statistically significant in predicting LogSalePrice, as indicated by the low p-value (< 2.2e-16). However, the adjusted R-squared value (0.06557) indicates that the model explains only a small proportion of the variability (6.557%) in LogSalePrice, suggesting that other factors not included in the model may also influence SalePrice.
+
+Let's plot the results to compare the original response variable with the fitted values obtained from the exponential regression model.
+
+
+```{r}
+# Plot the fitted values against the original response variable
+plot(numerical_data$SalePrice, exp(predict(exp_model)), xlab = "Original Response", ylab = "Fitted Response (Exponential)")
+```
+
+
+```{r Residual Analysis}
+# Perform residual analysis
+plot(fitted(exp_model), residuals(exp_model),
+     xlab = "Fitted values", ylab = "Residuals",
+     main = "Residuals vs Fitted")
+```
+
+
+It seems that the exponential model is not great model for the variables Let's try polynomial model and see what will get:
+
+## Polynomial Model:
+
+
+```{r}
+# Select predictors
+predictors <- c('LotArea', 'OverallQual', 'YearBuilt', 'MSSubClass', 'X1stFlrSF', 'X2ndFlrSF', 'BedroomAbvGr')  
+degree <- 2  
+
+# Create polynomial terms for each predictor individually
+poly_terms <- lapply(numerical_data[predictors], poly, degree = degree)
+
+# Combine polynomial terms into a single matrix
+poly_matrix <- do.call(cbind, poly_terms)
+
+# Fit polynomial regression model
+poly_model <- lm(SalePrice ~ poly_matrix, data = numerical_data)
+
+# Print summary of the model
+summary(poly_model)
+```
+
+
+## Conclusion:
+
+***Using linear model at first*** shows that there are Several predictors that are statistically significant in predicting the sale price, as indicated by their low p-values (< 0.05). These predictors include 'OverallQual', 'OverallCond', 'YearBuilt', 'X1stFlrSF', 'X2ndFlrSF', 'BedroomAbvGr', 'TotRmsAbvGrd', 'GarageCars', 'WoodDeckSF', and 'ScreenPorch'. By looking at the coefficients, we can see the predictors that have bigger rate of change (or slope). For instance, a one-unit increase in OverallQual is associated with an estimated increase in the sale price of approximately $19,840. The adjusted R-squared in the summary also indicates that 80.6% of the variability in the sale price is explained by the predictors included in the model. This suggests that the model provides a reasonably good fit to the data. So the linear model can be used to predict the sale price of houses based on the values of the predictors included in the model. We can use this equation: 
+
+$$
+\begin{align}
+SalePrice = &-8.552^{05} + 1.984^{04} \times OverallQual+ -1.905^{02} \times MSSubClass + 4.430^{01} \times LotArea \\
+&+ 5.290^{03} \times OverallCond + 3.930^{02} \times YearBuilt +  2.991^{01} \times MasVnrArea \\
+&+ 1.053^{01} \times BsmtFinSF1 +  5.704^{01} \times X1stFlrSF + 5.041^{01} \times X2ndFlrSF \\
+&+ 8.790^{03} \times BsmtFullBath + -1.070^{04} \times BedroomAbvGr \\
+&+ 4.687^{03} \times TotRmsAbvGrd + 1.039^{04}  \times GarageCars \\
+&+ 2.765^{01} \times WoodDeckSF + 5.670^{01}  \times ScreenPorch + \epsilon
+\end{align}
+$$
+
+
+***For the exponential model***, the coefficient of 'LotArea' is estimated to be $1.03 \times 10^{-5}$ which indicates that every one square foot increase in LotArea, the predicted natural logarithm of the sale price (LogSalePrice) increases by approximately $1.03 \times 10^{-5}$ units. The p-value ($<2.2 \times 10^{-16}$) suggests that there is a significant relationship between LotArea and LogSalePrice. However, the adjusted R-squared approximately 6.57% of the variability in LogSalePrice is explained by LotArea. While statistically significant. The model can be used to predict the natural logarithm of the LogSalePrice (**but not the sale price**) based on the value of LotArea. The following equation can be used to predict the sale price:
+
+$LogSalePrice  =  11.92 + 1.030^{-05} \times LotArea + \epsilon $
+
+
+***For the polynomial model***, many of the predictors (the polynomial terms) have statistically significant coefficients, as indicated by the p-values ($< 0.05$). In other words, these terms have significant impact on predicting the sale price of the houses. The adjusted R-squared value of 0.8294 indicates that approximately 82.94% of the variability in the sale price is explained by the polynomial terms included in the model. This suggests s good fit of the data. This model can be also used to predict the sale price of houses based on the values of the polynomial terms included in the model.
+
+
+
+
+
+
