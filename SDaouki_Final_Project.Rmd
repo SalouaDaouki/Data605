@@ -45,12 +45,16 @@ write.csv(Train_df_tibble, "Train_df_tibble.csv", row.names = FALSE)
 # Subsetthe data to include only the first 1459 rows to meet Kaggle requirement
 Train_df_subset <- head(Train_df, 1459)
 
+# Fixng the erros I got when submitting in  Kaggle 
+Train_df_subset$Id <- seq_along(Train_df_subset$SalePrice)
+
 # Export Train_df to CSV file
 write.csv(Train_df_subset, "Train_df_subset.csv", row.names = FALSE)
 ```
 
 
 ## Exploring the data:
+
 
 ### Glimpse of the data:
 
@@ -61,7 +65,7 @@ head(Train_df)
 
 ```{r echo=TRUE, results='hide'}
 # Display the statistical properties of the data
-summary(Train_df_subset)
+summary(Train_df)
 ```
 
 
@@ -70,23 +74,23 @@ This data set contains 1460 observations with 81 variables; 39 of those variable
 
 ```{r}
 # Check for missing values
-sum(is.na(Train_df_subset))
+sum(is.na(Train_df))
 ```
 
 ### Checking the skewness of the quantitative variables:
 
 ```{r}
 # Identify the numerical and categorical data variables
-numerical_vars <- sapply(Train_df_subset, is.numeric)
-Categorical_vars <- sapply(Train_df_subset, is.character)
+numerical_vars <- sapply(Train_df, is.numeric)
+Categorical_vars <- sapply(Train_df, is.character)
 
 # Subset the data to include only quantitative variables
-numerical_data <- Train_df_subset[, numerical_vars]
-Categorical_data <- Train_df_subset[, Categorical_vars]
+numerical_data <- Train_df[, numerical_vars]
+Categorical_data <- Train_df[, Categorical_vars]
 
 # Calculate skewness for quantitative variables
 skewness_values <- sapply(numerical_data, skewness)
-print(skewness_values)
+head(skewness_values)
 ```
 
 Based on the skewness level above, the LotArea has the greatest positive value, which means that this variable has distribution that is skewed to the right. Now, let's identify the variables that has positive level of skewness and order them in ascending order, so we can see of our choice of the independent varaible is the right decision:
@@ -134,7 +138,7 @@ x_threshold <- 11602  # 3rd quartile of X (Lot Area)
 y_threshold <- 163000 # 2nd quartile or median of Y (Sale Price)
 
 # Filter the data where both X and Y exceed their thresholds
-filtered_Train_df <- Train_df_subset[Train_df_subset$LotArea > x_threshold & Train_df_subset$SalePrice > y_threshold, ]
+filtered_Train_df <- Train_df[Train_df$LotArea > x_threshold & Train_df$SalePrice > y_threshold, ]
 
 # Count the number of observations in the filtered dataset
 num_observations_both_exceed <- nrow(filtered_Train_df)
@@ -147,7 +151,7 @@ Now, let's count the number of observations where $Y>y$:
 
 ```{r}
 # Filter the data where only Y exceeds its threshold
-filtered_data_Y_exceeds <- Train_df_subset[Train_df_subset$SalePrice > y_threshold, ]
+filtered_data_Y_exceeds <- Train_df[Train_df$SalePrice > y_threshold, ]
 
 # Count the number of observations in the filtered dataset
 num_observations_Y_exceeds <- nrow(filtered_data_Y_exceeds)
@@ -226,7 +230,7 @@ print(count_table)
 
 ```{r}
 # Filter the data where both X and Y below their thresholds
-filtered_Train_df_both_leq <- Train_df_subset[Train_df_subset$LotArea <= x_threshold & Train_df_subset$SalePrice <= y_threshold, ]
+filtered_Train_df_both_leq <- Train_df[Train_df$LotArea <= x_threshold & Train_df$SalePrice <= y_threshold, ]
 
 # Count the number of observations in the filtered dataset where both X and Y are less or equal to their thresholds
 num_observations_both_lessEq <- nrow(filtered_Train_df_both_leq)
@@ -237,7 +241,7 @@ print(num_observations_both_lessEq)
 
 ```{r}
 # Filter the data where X<=x and Y>y
-filtered_Train_df_X_leq_Y_g <- Train_df_subset[Train_df_subset$LotArea <= x_threshold & Train_df_subset$SalePrice > y_threshold, ]
+filtered_Train_df_X_leq_Y_g <- Train_df[Train_df$LotArea <= x_threshold & Train_df$SalePrice > y_threshold, ]
 
 # Count the number of observations in the filtered dataset 
 num_observations_X_leq_Y_g <- nrow(filtered_Train_df_X_leq_Y_g)
@@ -249,7 +253,7 @@ print(num_observations_X_leq_Y_g )
 
 ```{r}
 # Filter the data where X>x and Y<=y
-filtered_Train_df_X_leq_Y_g <- Train_df_subset[Train_df_subset$LotArea > x_threshold & Train_df_subset$SalePrice <= y_threshold, ]
+filtered_Train_df_X_leq_Y_g <- Train_df[Train_df$LotArea > x_threshold & Train_df$SalePrice <= y_threshold, ]
 
 # Count the number of observations in the filtered dataset 
 num_observations_X_g_Y_leq <- nrow(filtered_Train_df_X_leq_Y_g)
@@ -323,8 +327,8 @@ First let's plot histograms for the numerical variables in the training data (Tr
 
 ```{r}
 # Univariate plots for numerical variables
-for (col in names(Train_df_subset)[numerical_vars]) {
-  print(ggplot(Train_df_subset, aes_string(x = col)) +
+for (col in names(Train_df)[numerical_vars]) {
+  print(ggplot(Train_df, aes_string(x = col)) +
           geom_histogram(fill = "skyblue", color = "black") +
           labs(title = paste("Histogram of", col), x = col, y = "Frequency"))
 }
@@ -387,7 +391,7 @@ It's little overwhelming to get any conclusion about the association between tho
 sorted_result_df <- result_df[order(result_df$P_Value), ]
 
 # Open a PDF device with specified width and height
-pdf("ANOVA_plot.pdf", width = 10, height = 8)
+pdf("ANOVA_plot.png", width = 10, height = 8)
 
 # Increase margin space for bottom
 par(mar = c(8, 5, 4, 2) + 0.1)
@@ -408,7 +412,7 @@ dev.off()
 ```
 
 
-![ANOVA Plot](/Users/salouadaouki/Desktop/Data605/ANOVA_plot.pdf)
+![ANOVA Plot](/Users/salouadaouki/Desktop/Data605/ANOVA_plot.png)
 
 
 Now it is evident that "Neighborhood" component has the tallest bar; the smallest p-value, which indicates there is a strong association between the sale price of the houses and the neighborhood. In other words, there are significant differences in SalePrice across different neighborhoods. On the other hands, the "utilities" has the biggest p-value; there is a weak association.
@@ -420,7 +424,7 @@ Now, let's graph a scatter plot of X, "LotArea" and Y, "SalePrice":
 
 ```{r}
 # Plot SalePrice (Y) against LotArea (X)
-plot(Train_df_subset$LotArea, Train_df_subset$SalePrice, 
+plot(Train_df$LotArea, Train_df$SalePrice, 
      xlab = "LotArea", ylab = "SalePrice", 
      main = "Scatterplot of LotArea vs SalePrice")
 ```
@@ -429,7 +433,7 @@ Most of the data points are clustered on the left side of the plot, which indica
 
 ```{r}
 # Log transformation
-plot(log(Train_df_subset$LotArea), log(Train_df_subset$SalePrice), 
+plot(log(Train_df$LotArea), log(Train_df$SalePrice), 
      xlab = "Log(LotArea)", ylab = "Log(SalePrice)", 
      main = "Scatterplot of Log(LotArea) vs Log(SalePrice)")
 ```
@@ -443,7 +447,7 @@ Now, let's calculate the 95% confidence interval for the difference in means of 
 
 ```{r}
 # Perform t-test for the difference in means
-t_test_result <- t.test(Train_df_subset$LotArea, Train_df_subset$SalePrice)
+t_test_result <- t.test(Train_df$LotArea, Train_df$SalePrice)
 
 # Extract confidence interval from the t-test result
 ci_lower <- t_test_result$conf.int[1]
@@ -475,7 +479,7 @@ Correlation matrix for both variables; LotArea and SalePrice:
 
 ```{r}
 # Create a subset of your dataset with only the two variables of interest
-subset_df <- Train_df_subset[, c("LotArea", "SalePrice")]
+subset_df <- Train_df[, c("LotArea", "SalePrice")]
 
 # Calculate the correlation matrix
 correlation_matrix <- cor(subset_df)
@@ -859,60 +863,6 @@ print(correlation_matrix_New)
 
 Yay! It worked.
 
-
-```{r}
-# Function to calculate correlation matrix and plot heatmap for a subset
-plot_correlation_heatmap <- function(subset_data, subset_name) {
-  # Calculate correlation matrix
-  correlation_matrix <- cor(subset_data)
-  
-  # Find variables strongly correlated with SalePrice
-  strong_correlation_with_saleprice <- correlation_matrix["SalePrice", ] >= strong_correlation_threshold
-  
-  # Convert correlation matrix to long format
-  correlation_long <- melt(correlation_matrix_New)
-  
-  # Plot heatmap
-  ggplot(correlation_long, aes(Var1, Var2, fill = value)) +
-    geom_tile(color = "white") +
-    scale_fill_gradient2(low = "blue", high = "red", mid = "white",
-                         midpoint = 0, limit = c(-1, 1), space = "Lab",
-                         name = "Correlation") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 12, hjust = 1)) +
-    coord_fixed() +
-    ggtitle(paste("Correlation Heatmap -", subset_name)) +  # Add subset name to title
-    theme(plot.title = element_text(hjust = 0.5)) +  # Center the title
-    geom_tile(data = correlation_long[strong_correlation_with_saleprice, ],
-              aes(Var1, Var2), fill = "black", color = "black")  # Highlight strong correlations with SalePrice
-}
-
-# Set threshold for strong correlation with SalePrice
-strong_correlation_threshold <- 0.5
-
-# Split numerical variables into subsets
-num_subset <- 10  # Adjust as needed
-subset_size <- ceiling((length(numerical_data) - 1) / num_subset)  # -1 to exclude SalePrice
-subset_names <- paste0("Subset", 1:num_subset)
-
-# Create subsets
-subsets <- lapply(1:num_subset, function(i) {
-  start_index <- (i - 1) * subset_size + 1
-  end_index <- min(i * subset_size, length(numerical_data))
-  subset_data <- numerical_data[, start_index:end_index]  # Subset without SalePrice
-  subset_data$SalePrice <- numerical_data$SalePrice  # Add SalePrice as the last column
-  return(subset_data)
-})
-
-# Plot correlation heatmaps for each subset
-plots <- lapply(1:num_subset, function(i) {
-  plot_correlation_heatmap(subsets[[i]], subset_names[i])
-})
-
-# Arrange and display the plots
-grid.arrange(grobs = plots, ncol = 2)
-```
-
 However, it is still hard to read the heat map even though the data was split into 5 then 10 subsets. Let's run the full linear model using all numerical variables as predictors for SalePrice.
 
 ```{r}
@@ -930,7 +880,7 @@ Now, let’s perform the backward process elimination:
 
 
 ```{r}
-# Assuming model is your full linear regression model
+# Linear Model for the most significant predictors
 half_full_model <- lm(SalePrice ~ MSSubClass + LotArea + OverallQual + OverallCond + 
                   YearBuilt + MasVnrArea + BsmtFinSF1 + X1stFlrSF + X2ndFlrSF + 
                   BsmtFullBath + BedroomAbvGr + TotRmsAbvGrd + GarageCars + 
@@ -1015,6 +965,53 @@ The points are clustered in the range of [0e+00, 4e+05], this indicates that the
 
 ```{r}
 plot(half_full_model, which = 5)
+```
+
+
+
+## Predictions using linear model:
+
+First, let's create a subset of numerical data that includes only the most significant predictors:
+
+```{r}
+# Create the list
+predictor_variables <- c("MSSubClass", "LotArea", "OverallQual", "OverallCond", 
+                         "YearBuilt", "MasVnrArea", "BsmtFinSF1", "X1stFlrSF", 
+                         "X2ndFlrSF", "BsmtFullBath", "BedroomAbvGr", "TotRmsAbvGrd", 
+                         "GarageCars", "WoodDeckSF", "ScreenPorch")
+
+# Create a subset of "numerical_data" using the predictor variables
+subset_data <- numerical_data[, c("SalePrice", predictor_variables)]
+```
+
+
+Now, let's predict the Sale Price using the predictors variables:
+
+```{r}
+# Predict the SalePrice using the half_full_model
+predicted_SalePrice <- predict(half_full_model, newdata = numerical_data)
+
+# View the predicted SalePrice
+print(predicted_SalePrice)
+
+# Create a data frame with Id and predicted SalePrice
+predictions <- data.frame(Id = numerical_data$Id, SalePrice = round(predicted_SalePrice, 0))
+
+# View the predicted SalePrice
+head(predictions)
+```
+Let's export the predictions and submit it to Kaggle
+
+```{r}
+# Remove the last row from the predictions data frame
+predictions <- head(predictions, -1)
+
+# Write predictions data frame to a .csv file
+write.csv(predictions, file = "predictions.csv", row.names = FALSE)
+```
+
+```{r}
+str(numerical_data)
 ```
 
 
@@ -1110,6 +1107,9 @@ $LogSalePrice  =  11.92 + 1.030^{-05} \times LotArea + \epsilon $
 ***For the polynomial model***, many of the predictors (the polynomial terms) have statistically significant coefficients, as indicated by the p-values ($< 0.05$). In other words, these terms have significant impact on predicting the sale price of the houses. The adjusted R-squared value of 0.8294 indicates that approximately 82.94% of the variability in the sale price is explained by the polynomial terms included in the model. This suggests s good fit of the data. This model can be also used to predict the sale price of houses based on the values of the polynomial terms included in the model.
 
 
+```{r}
+write.csv(Train_df_subset, file = "/Users/salouadaouki/Desktop/Data605/Submission.csv", row.names = FALSE)
+```
 
 
 
