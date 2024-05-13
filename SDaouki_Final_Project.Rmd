@@ -4,22 +4,19 @@ author: "Saloua Daouki"
 date: "2024-05-06"
 output: 
  html_document:
-    toc: true
-    toc_float: true
-    toc_depth: 3
+  toc: true
+  toc_float: true
+  toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::include_graphics("/Users/salouadaouki/Desktop/Data605/ANOVA_plot.pdf")
-knitr::include_graphics("/Users/salouadaouki/Desktop/Data605/scatterplot_matrix.pdf")
-knitr::include_graphics("/Users/salouadaouki/Desktop/Data605/residual_plots.png")
 ```
 
 
 ## Loading the necessary packages:
 
-```{r}
+```{r echo=TRUE, results = 'hide',  message = FALSE}
 library(knitr) # For formatting tables
 library(e1071) # for checking the skewness
 library(ggplot2) # For plots
@@ -28,48 +25,64 @@ library(randomForest) #for feature importance
 library(dplyr)
 library(MASS)
 library(gridExtra)
+library(tibble)
 ```
 
 ## Loading and reading the data in R:
 
-```{r }
+```{r echo=FALSE}
 Train_df <- read.csv("https://raw.githubusercontent.com/SalouaDaouki/Data605/main/train.csv")
+
+# Convert existing data frame to a tibble
+Train_df_tibble <- as_tibble(Train_df)
+
+# Export Train_df to CSV file
+write.csv(Train_df_tibble, "Train_df_tibble.csv", row.names = FALSE)
 ```
+
+
+```{r}
+# Subsetthe data to include only the first 1459 rows to meet Kaggle requirement
+Train_df_subset <- head(Train_df, 1459)
+
+# Export Train_df to CSV file
+write.csv(Train_df_subset, "Train_df_subset.csv", row.names = FALSE)
+```
+
 
 ## Exploring the data:
 
 ### Glimpse of the data:
 
-```{r }
-# Display the structure of the data
-str(Train_df)
-```
-
-```{r}
+```{r echo=TRUE, results='hide'}
 # Display the first few rows of the data:
 head(Train_df)
 ```
 
-```{r}
+```{r echo=TRUE, results='hide'}
 # Display the statistical properties of the data
-summary(Train_df)
+summary(Train_df_subset)
 ```
+
+
+This data set contains 1460 observations with 81 variables; 39 of those variables are numerical and 43 are categorical
+
 
 ```{r}
 # Check for missing values
-sum(is.na(Train_df))
+sum(is.na(Train_df_subset))
 ```
 
 ### Checking the skewness of the quantitative variables:
 
 ```{r}
 # Identify the numerical and categorical data variables
-numerical_vars <- sapply(Train_df, is.numeric)
-Categorical_vars <- sapply(Train_df, is.character)
+numerical_vars <- sapply(Train_df_subset, is.numeric)
+Categorical_vars <- sapply(Train_df_subset, is.character)
 
 # Subset the data to include only quantitative variables
-numerical_data <- Train_df[, numerical_vars]
-Categorical_data <- Train_df[, Categorical_vars]
+numerical_data <- Train_df_subset[, numerical_vars]
+Categorical_data <- Train_df_subset[, Categorical_vars]
 
 # Calculate skewness for quantitative variables
 skewness_values <- sapply(numerical_data, skewness)
@@ -93,8 +106,8 @@ print(sorted_positive_skew_vars)
 Based on the calculated skewness, the independent variable I am choosing is Lot Area, so $X=LotArea$. The dependent variable is Sale Price, so $Y=SalePrice$.
 
 ```{r}
-X <- Train_df$LotArea
-Y <- Train_df$SalePrice
+X <- Train_df_subset$LotArea
+Y <- Train_df_subset$SalePrice
 ```
 
 ## Calculating the probability:
@@ -121,7 +134,7 @@ x_threshold <- 11602  # 3rd quartile of X (Lot Area)
 y_threshold <- 163000 # 2nd quartile or median of Y (Sale Price)
 
 # Filter the data where both X and Y exceed their thresholds
-filtered_Train_df <- Train_df[Train_df$LotArea > x_threshold & Train_df$SalePrice > y_threshold, ]
+filtered_Train_df <- Train_df_subset[Train_df_subset$LotArea > x_threshold & Train_df_subset$SalePrice > y_threshold, ]
 
 # Count the number of observations in the filtered dataset
 num_observations_both_exceed <- nrow(filtered_Train_df)
@@ -134,7 +147,7 @@ Now, let's count the number of observations where $Y>y$:
 
 ```{r}
 # Filter the data where only Y exceeds its threshold
-filtered_data_Y_exceeds <- Train_df[Train_df$SalePrice > y_threshold, ]
+filtered_data_Y_exceeds <- Train_df_subset[Train_df_subset$SalePrice > y_threshold, ]
 
 # Count the number of observations in the filtered dataset
 num_observations_Y_exceeds <- nrow(filtered_data_Y_exceeds)
@@ -192,7 +205,7 @@ print(Prob3)
 
 This probability indicates that given houses with higher sale price, there is higher chance, 62.1%, that those houses have smaller lot area (less than 3rd quartile).
 
-```{r}
+```{r echo=FALSE, results='hide'}
 # Create logical conditions for quartile categories
 x_below_3rd_quartile <- X <= x_threshold
 x_above_3rd_quartile <- X > x_threshold
@@ -213,7 +226,7 @@ print(count_table)
 
 ```{r}
 # Filter the data where both X and Y below their thresholds
-filtered_Train_df_both_leq <- Train_df[Train_df$LotArea <= x_threshold & Train_df$SalePrice <= y_threshold, ]
+filtered_Train_df_both_leq <- Train_df_subset[Train_df_subset$LotArea <= x_threshold & Train_df_subset$SalePrice <= y_threshold, ]
 
 # Count the number of observations in the filtered dataset where both X and Y are less or equal to their thresholds
 num_observations_both_lessEq <- nrow(filtered_Train_df_both_leq)
@@ -224,7 +237,7 @@ print(num_observations_both_lessEq)
 
 ```{r}
 # Filter the data where X<=x and Y>y
-filtered_Train_df_X_leq_Y_g <- Train_df[Train_df$LotArea <= x_threshold & Train_df$SalePrice > y_threshold, ]
+filtered_Train_df_X_leq_Y_g <- Train_df_subset[Train_df_subset$LotArea <= x_threshold & Train_df_subset$SalePrice > y_threshold, ]
 
 # Count the number of observations in the filtered dataset 
 num_observations_X_leq_Y_g <- nrow(filtered_Train_df_X_leq_Y_g)
@@ -236,7 +249,7 @@ print(num_observations_X_leq_Y_g )
 
 ```{r}
 # Filter the data where X>x and Y<=y
-filtered_Train_df_X_leq_Y_g <- Train_df[Train_df$LotArea > x_threshold & Train_df$SalePrice <= y_threshold, ]
+filtered_Train_df_X_leq_Y_g <- Train_df_subset[Train_df_subset$LotArea > x_threshold & Train_df_subset$SalePrice <= y_threshold, ]
 
 # Count the number of observations in the filtered dataset 
 num_observations_X_g_Y_leq <- nrow(filtered_Train_df_X_leq_Y_g)
@@ -310,8 +323,8 @@ First let's plot histograms for the numerical variables in the training data (Tr
 
 ```{r}
 # Univariate plots for numerical variables
-for (col in names(Train_df)[numerical_vars]) {
-  print(ggplot(Train_df, aes_string(x = col)) +
+for (col in names(Train_df_subset)[numerical_vars]) {
+  print(ggplot(Train_df_subset, aes_string(x = col)) +
           geom_histogram(fill = "skyblue", color = "black") +
           labs(title = paste("Histogram of", col), x = col, y = "Frequency"))
 }
@@ -339,7 +352,7 @@ for (col in names(Categorical_data)) {
 To assess the correlation between the categorical variables and the SalePrice of houses, we can use the Analysis of Variance technique (ANOVA) as follows:
 
 
-```{r}
+```{r echo=TRUE, results='hide'}
 # Convert categorical variables to factors
 categorical_data <- lapply(Categorical_data, factor)
 
@@ -369,7 +382,7 @@ print(result_df)
 It's little overwhelming to get any conclusion about the association between those variables and the SalePrice from the table, let's visualize the results in a bar plot:
 
 
-```{r}
+```{r echo=FALSE, results='hide', message=FALSE}
 # Sort result_df by p-values
 sorted_result_df <- result_df[order(result_df$P_Value), ]
 
@@ -398,7 +411,6 @@ dev.off()
 ![ANOVA Plot](/Users/salouadaouki/Desktop/Data605/ANOVA_plot.pdf)
 
 
-
 Now it is evident that "Neighborhood" component has the tallest bar; the smallest p-value, which indicates there is a strong association between the sale price of the houses and the neighborhood. In other words, there are significant differences in SalePrice across different neighborhoods. On the other hands, the "utilities" has the biggest p-value; there is a weak association.
 
 
@@ -408,7 +420,7 @@ Now, let's graph a scatter plot of X, "LotArea" and Y, "SalePrice":
 
 ```{r}
 # Plot SalePrice (Y) against LotArea (X)
-plot(Train_df$LotArea, Train_df$SalePrice, 
+plot(Train_df_subset$LotArea, Train_df_subset$SalePrice, 
      xlab = "LotArea", ylab = "SalePrice", 
      main = "Scatterplot of LotArea vs SalePrice")
 ```
@@ -417,7 +429,7 @@ Most of the data points are clustered on the left side of the plot, which indica
 
 ```{r}
 # Log transformation
-plot(log(Train_df$LotArea), log(Train_df$SalePrice), 
+plot(log(Train_df_subset$LotArea), log(Train_df_subset$SalePrice), 
      xlab = "Log(LotArea)", ylab = "Log(SalePrice)", 
      main = "Scatterplot of Log(LotArea) vs Log(SalePrice)")
 ```
@@ -431,7 +443,7 @@ Now, let's calculate the 95% confidence interval for the difference in means of 
 
 ```{r}
 # Perform t-test for the difference in means
-t_test_result <- t.test(Train_df$LotArea, Train_df$SalePrice)
+t_test_result <- t.test(Train_df_subset$LotArea, Train_df_subset$SalePrice)
 
 # Extract confidence interval from the t-test result
 ci_lower <- t_test_result$conf.int[1]
@@ -463,7 +475,7 @@ Correlation matrix for both variables; LotArea and SalePrice:
 
 ```{r}
 # Create a subset of your dataset with only the two variables of interest
-subset_df <- Train_df[, c("LotArea", "SalePrice")]
+subset_df <- Train_df_subset[, c("LotArea", "SalePrice")]
 
 # Calculate the correlation matrix
 correlation_matrix <- cor(subset_df)
@@ -592,7 +604,6 @@ head(samples)
 The optimal $\lambda$ is very close to the estimated $\lambda$: optimal lambda (8.46e-05) $\approx$ estimated lambda (8.461792e-05).
 
 
-
 ## Histogram of the original and shifted Lot Area:
 
 
@@ -709,16 +720,12 @@ Lot area plays a significant role in determining the sale price of houses, but i
 ## Regression Model:
 
 
-```{r}
+```{r echo=FALSE, results='hide', message=FALSE}
 # Create a new graphics device with larger dimensions
 pdf("scatterplot_matrix.pdf", width = 10, height = 10)
 pairs(numerical_data, gap = 0.5)
 dev.off()  # Close the graphics device after plotting
 ```
-
-
-![Scatter Plot MAtrix](/Users/salouadaouki/Desktop/Data605/scatterplot_matrix.pdf)
-
 
 
 ### Identifying Potential Predictors:
@@ -772,44 +779,7 @@ ggplot(correlation_long, aes(Var1, Var2, fill = value)) +
 
 This is hare to read, let's split the numerical data into subset and plot the heat map of the variables against the SalePrice:
 
-```{r}
-# Set the number of subsets
-num_subset <- 5
-
-# Split numerical data into subsets (excluding SalePrice)
-subsets <- split(numerical_data[, -which(names(numerical_data) == "SalePrice")], 1:num_subset)
-
-# Create a list to store correlation matrices
-correlation_matrices <- vector("list", length = num_subset)
-
-# Calculate correlation matrices for each subset
-for (i in 1:num_subset) {
-  # Combine SalePrice with the subset
-  subset_with_saleprice <- cbind(subsets[[i]], SalePrice = numerical_data$SalePrice)
-  # Calculate correlation matrix
-  correlation_matrices[[i]] <- cor(subset_with_saleprice)
-}
-
-# Plot heatmaps for each correlation matrix
-for (i in 1:num_subset) {
-  # Convert the correlation matrix to long format
-  correlation_long <- melt(correlation_matrices[[i]])
-  
-  # Plot heatmap
-  ggplot(correlation_long, aes(Var1, Var2, fill = value)) +
-    geom_tile(color = "white") +
-    scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
-                         midpoint = 0, limit = c(-1,1), space = "Lab", 
-                         name = "Correlation") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 12, hjust = 1)) +
-    coord_fixed() +
-    ggtitle(paste("Subset", i)) +  # Add subset number to the title
-    theme(plot.title = element_text(hjust = 0.5))  # Center the title
-}
-```
-
-The error that occurs after running the code above indicates that there maybe row names that are duplicated, also the standard deviation is zero suggests that there are some variables that might have constant value across all observations. Let's fix this by also handling if there is any missing data, then re-run the code:
+The error that occurs after running the code above (for creating a heat map, the code was hidden to minimize the amount of code displayed in this R Markdown document.) indicates that there maybe row names that are duplicated, also the standard deviation is zero suggests that there are some variables that might have constant value across all observations. Let's fix this by also handling if there is any missing data, then re-run the code:
 
 
 ```{r}
@@ -880,14 +850,14 @@ if (any(missing_values)) {
 ```
 
 
-```{r}
+```{r echo=TRUE, results='hide'}
 #Calculate the correlation matrix again after handling the missing data and the constant values
 correlation_matrix_New <- cor(numerical_data)
 
 print(correlation_matrix_New)
 ```
 
-
+Yay! It worked.
 
 
 ```{r}
@@ -943,7 +913,7 @@ plots <- lapply(1:num_subset, function(i) {
 grid.arrange(grobs = plots, ncol = 2)
 ```
 
-It is still hard to read the heat map even though the data was split into 5 then 10 subsets. Let's run the full linear model using all numerical variables as predictors for SalePrice.
+However, it is still hard to read the heat map even though the data was split into 5 then 10 subsets. Let's run the full linear model using all numerical variables as predictors for SalePrice.
 
 ```{r}
 # Fit linear model
@@ -1010,7 +980,7 @@ By looking at the tails of the Q-Q plot, they seem that they are curved, which i
 #### Residuals vs. Predictor Plots
 
 
-```{r}
+```{r echo=TRUE, message=FALSE}
 png("residual_plots.png", width = 800, height = 800)
 par(mfrow = c(3, 3))
 for (predictor in names(half_full_model$model)[-1]) {
@@ -1025,8 +995,6 @@ dev.off()
 ![Residual Plots](/Users/salouadaouki/Desktop/Data605/residual_plots.png)
 
 
-
-
 Some of the plots show a pattern of vertical lines, that suggests that the residuals don't have constant vaiance.
 
 #### Scale-Location Plot: 
@@ -1038,6 +1006,7 @@ plot(fitted(half_full_model), sqrt_abs_residuals,
      main = "Scale-Location Plot")
 abline(h = 0, col = "red")
 ```
+
 The points are clustered in the range of [0e+00, 4e+05], this indicates that the spread of residuals is relatively consistent across most of the fitted values. The presence of outliers outside the range mentioned above suggests that there might be specific observations where the model's predictions are notably inaccurate. 
 
 
