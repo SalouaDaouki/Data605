@@ -991,11 +991,11 @@ Now, let's predict the Sale Price using the predictors variables:
 # Predict the SalePrice using the half_full_model
 predicted_SalePrice <- predict(half_full_model, newdata = numerical_data)
 
-# View the predicted SalePrice
-print(predicted_SalePrice)
+# Create a sequence of Id values starting from 1461
+new_Id <- seq(1461, length.out = nrow(numerical_data), by = 1)
 
-# Create a data frame with Id and predicted SalePrice
-predictions <- data.frame(Id = numerical_data$Id, SalePrice = round(predicted_SalePrice, 0))
+# Create a data frame with modified Id and predicted SalePrice
+predictions <- data.frame(Id = new_Id, SalePrice = round(predicted_SalePrice, 0))
 
 # View the predicted SalePrice
 head(predictions)
@@ -1005,6 +1005,13 @@ Let's export the predictions and submit it to Kaggle
 ```{r}
 # Remove the last row from the predictions data frame
 predictions <- head(predictions, -1)
+
+# Check for missing values in the SalePrice column
+missing_values <- sum(is.na(predictions$SalePrice))
+print(missing_values)
+
+# Replace missing values in the SalePrice column with the median value
+predictions$SalePrice[is.na(predictions$SalePrice)] <- median(predictions$SalePrice, na.rm = TRUE)
 
 # Write predictions data frame to a .csv file
 write.csv(predictions, file = "predictions.csv", row.names = FALSE)
