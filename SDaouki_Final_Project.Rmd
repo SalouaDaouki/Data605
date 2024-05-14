@@ -13,7 +13,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
 ## Loading the necessary packages:
 
 ```{r echo=TRUE, results = 'hide',  message = FALSE}
@@ -40,7 +39,6 @@ Train_df_tibble <- as_tibble(Train_df)
 write.csv(Train_df_tibble, "Train_df_tibble.csv", row.names = FALSE)
 ```
 
-
 ```{r}
 # Subsetthe data to include only the first 1459 rows to meet Kaggle requirement
 Train_df_subset <- head(Train_df, 1459)
@@ -52,9 +50,7 @@ Train_df_subset$Id <- seq_along(Train_df_subset$SalePrice)
 write.csv(Train_df_subset, "Train_df_subset.csv", row.names = FALSE)
 ```
 
-
 ## Exploring the data:
-
 
 ### Glimpse of the data:
 
@@ -68,9 +64,7 @@ head(Train_df)
 summary(Train_df)
 ```
 
-
 This data set contains 1460 observations with 81 variables; 39 of those variables are numerical and 43 are categorical
-
 
 ```{r}
 # Check for missing values
@@ -94,7 +88,6 @@ head(skewness_values)
 ```
 
 Based on the skewness level above, the LotArea has the greatest positive value, which means that this variable has distribution that is skewed to the right. Now, let's identify the variables that has positive level of skewness and order them in ascending order, so we can see of our choice of the independent varaible is the right decision:
-
 
 ```{r}
 # Identify variables with positive skewness
@@ -250,7 +243,6 @@ num_observations_X_leq_Y_g <- nrow(filtered_Train_df_X_leq_Y_g)
 print(num_observations_X_leq_Y_g )
 ```
 
-
 ```{r}
 # Filter the data where X>x and Y<=y
 filtered_Train_df_X_leq_Y_g <- Train_df[Train_df$LotArea > x_threshold & Train_df$SalePrice <= y_threshold, ]
@@ -261,7 +253,6 @@ num_observations_X_g_Y_leq <- nrow(filtered_Train_df_X_leq_Y_g)
 # Print the count
 print(num_observations_X_g_Y_leq )
 ```
-
 
 Let's create a table with all counts that we calculated:
 
@@ -320,7 +311,6 @@ print(chi_square_result)
 
 Based on the chi square result above, we can reject the null hypothesis of independence, meaning that the variables are dependent (as we concluded above mathematically) and there is a significant association between the variables. So, splitting the training data in this fashion doesn't make them independent.
 
-
 ## Univariate descriptive statistics:
 
 First let's plot histograms for the numerical variables in the training data (Train_df)
@@ -334,9 +324,7 @@ for (col in names(Train_df)[numerical_vars]) {
 }
 ```
 
-
 Now, i am going to plot box plots for each of the categorical variables against the SalePRice, to visualize which variable has stronger influence on the sale price of houses,
-
 
 ```{r}
 # Convert categorical variables to factors
@@ -352,9 +340,7 @@ for (col in names(Categorical_data)) {
 }
 ```
 
-
 To assess the correlation between the categorical variables and the SalePrice of houses, we can use the Analysis of Variance technique (ANOVA) as follows:
-
 
 ```{r echo=TRUE, results='hide'}
 # Convert categorical variables to factors
@@ -382,9 +368,7 @@ print(result_df)
 
 ```
 
-
 It's little overwhelming to get any conclusion about the association between those variables and the SalePrice from the table, let's visualize the results in a bar plot:
-
 
 ```{r echo=FALSE, results='hide', message=FALSE}
 # Sort result_df by p-values
@@ -411,12 +395,9 @@ abline(h = log10(0.05), col = "red", lty = 2)
 dev.off()
 ```
 
-
 ![ANOVA Plot](/Users/salouadaouki/Desktop/Data605/ANOVA_plot.png)
 
-
 Now it is evident that "Neighborhood" component has the tallest bar; the smallest p-value, which indicates there is a strong association between the sale price of the houses and the neighborhood. In other words, there are significant differences in SalePrice across different neighborhoods. On the other hands, the "utilities" has the biggest p-value; there is a weak association.
-
 
 ## Scatter plot of X and Y
 
@@ -438,12 +419,9 @@ plot(log(Train_df$LotArea), log(Train_df$SalePrice),
      main = "Scatterplot of Log(LotArea) vs Log(SalePrice)")
 ```
 
-
-## 95% CI for the difference in the mean 
-
+## 95% CI for the difference in the mean
 
 Now, let's calculate the 95% confidence interval for the difference in means of two variables (LotArea and SalePrice):
-
 
 ```{r}
 # Perform t-test for the difference in means
@@ -457,11 +435,9 @@ ci_upper <- t_test_result$conf.int[2]
 cat("95% Confidence Interval for the difference in means: (", ci_lower, ", ", ci_upper, ")\n")
 ```
 
-
 The interval above indicates that the SalePrice tends to be significantly lower than LotArea within that range.
 
 Now let's derive a correlation matrix for two of the quantitative variables; LotArea and PriceSale. The variables X and Y are already defined before as LotArea and SalePrice respectively:
-
 
 ```{r}
 # Calculate the correlation coefficient between X and Y
@@ -471,11 +447,9 @@ correlation_coefficient <- cor(X, Y)
 print(correlation_coefficient)
 ```
 
-
 The correlation coefficient is positive, which indicates that as LotArea increases, the SalePrice increases as well. The number, 0.2638434, suggests a weak positive correlation between LotArea and SalePrice.
 
 Correlation matrix for both variables; LotArea and SalePrice:
-
 
 ```{r}
 # Create a subset of your dataset with only the two variables of interest
@@ -487,7 +461,6 @@ correlation_matrix <- cor(subset_df)
 # Print the correlation matrix
 print(correlation_matrix)
 ```
-
 
 Now, let's test the hypothesis that the correlation between these variables is 0 and provide a 99% confidence interval:
 
@@ -506,10 +479,7 @@ ci_upper <- cor_test_result$conf.int[2]
 cat("99% Confidence Interval for the correlation coefficient:", ci_lower, "to", ci_upper, "\n")
 ```
 
-The p-value, 2.2e-16, is very small which indicates strong evidence against the null hypothesis (that the correlation between these variables is 0). Therefore, we reject the null hypothesis, suggesting that the correlation between LotArea and SalePrice is statistically significant.
-The 99% Confidence Interval for the correlation coefficient: 0.2154574 to 0.3109369, emphasizes that the correlation coefficient is not 0. Meaning that the true correlation coefficient falls within the indicated interval.
-The "sample estimates", estimates the correlation coefficient which I calculated before; 0.2638434.
-
+The p-value, 2.2e-16, is very small which indicates strong evidence against the null hypothesis (that the correlation between these variables is 0). Therefore, we reject the null hypothesis, suggesting that the correlation between LotArea and SalePrice is statistically significant. The 99% Confidence Interval for the correlation coefficient: 0.2154574 to 0.3109369, emphasizes that the correlation coefficient is not 0. Meaning that the true correlation coefficient falls within the indicated interval. The "sample estimates", estimates the correlation coefficient which I calculated before; 0.2638434.
 
 Next, we are going to invert the correlation matrix, which is going to be the precision matrix and it will contain variance inflation factors on the diagonal.
 
@@ -520,7 +490,6 @@ inverted_matrix <- solve(correlation_matrix)
 # Print the inverted matrix
 print(inverted_matrix)
 ```
-
 
 ## Principle Components Analysis (PCA):
 
@@ -544,15 +513,15 @@ summary(pca_invert_by_cor)
 
 **For "pca_cor_by_invert":**
 
-- *Comp.1:* This component has a standard deviation of approximately 0.7071068 and explains 100% of the variance. 
+-   *Comp.1:* This component has a standard deviation of approximately 0.7071068 and explains 100% of the variance.
 
-- *Comp.2: * This component has a standard deviation close to zero (3.725290e-09) and explains a very tiny proportion of the variance (close to zero).
+-   *Comp.2:* This component has a standard deviation close to zero (3.725290e-09) and explains a very tiny proportion of the variance (close to zero).
 
 **For "pca_invert_by_cor":**
 
-- *Comp.1:* Similar to **'pca_cor_by_prec'**, this component has a standard deviation of approximately 0.7071068 and explains 100% of the variance, capturing all the variability in the data.
+-   *Comp.1:* Similar to **'pca_cor_by_prec'**, this component has a standard deviation of approximately 0.7071068 and explains 100% of the variance, capturing all the variability in the data.
 
-- *Comp.2:* This component has a standard deviation of zero and explains none of the variance. It doesn't contribute meaningfully to the understanding of the data.
+-   *Comp.2:* This component has a standard deviation of zero and explains none of the variance. It doesn't contribute meaningfully to the understanding of the data.
 
 Based on the skewness level of the variables of the data 'Train_df', the variable 'LotArea' has level of skewness of over 12, which indicates that it has a right skewed distribution. Let's shift it so that the minimum value is above zero. To do that, we can add a constant value to each observation. This constant value should be at least equal to the absolute value of the smallest negative value in the variable, plus a small margin to ensure that the minimum value becomes positive.
 
@@ -567,13 +536,11 @@ shift_constant <- abs(min_LotArea) + 1  # Add a small margin
 shifted_LotArea <- X + shift_constant
 ```
 
-
 The minimum LotArea is 1300, which makes the shift constant is 1301. Let's check the minimum of the 'shifted_LotArea' if it is above 0:
 
 ```{r}
 min(shifted_LotArea)
 ```
-
 
 Let's fit an exponential probability density function:
 
@@ -585,12 +552,9 @@ fit_exp <- fitdistr(shifted_LotArea, "exponential")
 print(fit_exp)
 ```
 
-
 The estimated rate parameter $\lambda$ = 8.461792e-05 suggests that the shifted LotArea values follow an exponential distribution, with an average rate of occurrence of approximately 8.461792e-05 per unit. The small standard error (2.214552e-06) indicates a relatively precise estimation of the rate parameter.
 
-
 Now, let's find the optimal value of $\lambda$ for this distribution, and then take 1000 samples from this exponential distribution using this value.
-
 
 ```{r}
 # Optimal value of λ using MLE
@@ -604,12 +568,9 @@ samples <- rexp(1000, rate = optimal_lambda)
 head(samples)
 ```
 
-
 The optimal $\lambda$ is very close to the estimated $\lambda$: optimal lambda (8.46e-05) $\approx$ estimated lambda (8.461792e-05).
 
-
 ## Histogram of the original and shifted Lot Area:
-
 
 The values in the sample seem very large, we can visualize the data and the fitted distribution to assess the goodness of fit. To do this, we can create a histogram of the data along with the probability density function (PDF) of the fitted distribution:
 
@@ -626,11 +587,9 @@ legend("topright", legend = c("Histogram", "Fitted Exponential PDF"),
        col = c("black", "red"), lwd = c(1, 2), bty = "n")
 ```
 
-It seems that the histogram and the PDF closely align, that suggests a good fit.
-After visualizing the histogram of the shifted LotArea, we can plot a histogram of the original LotArea and compare it to the shifted one.
+It seems that the histogram and the PDF closely align, that suggests a good fit. After visualizing the histogram of the shifted LotArea, we can plot a histogram of the original LotArea and compare it to the shifted one.
 
 Let's plot both histogram, side-to-side, for better comparison:
-
 
 ```{r}
 # Set up the plotting area
@@ -657,7 +616,7 @@ par(mfrow = c(1, 1))
 
 Both histograms look almost the same shape, this indicates that the shifting process didn't have significant impact on the distribution of the variable. So, the goodness of fit of the histogram of shifted LotArea and the similarity in distribution between both, original and shifted Lot Area suggest that the exponential distribution and the shifting process are appropriate for describing the data.
 
-Nest, let's use the exponential pdf to find the 5th and 95th percentiles using the cumulative distribution function (CDF). 
+Nest, let's use the exponential pdf to find the 5th and 95th percentiles using the cumulative distribution function (CDF).
 
 ## The Cumulative Distribution Function (CDF)
 
@@ -673,9 +632,7 @@ print(paste("5th percentile:", fifth_percentile))
 print(paste("95th percentile:", ninety_fifth_percentile))
 ```
 
-
-In this step, we are going to generate a 95% confidence interval from the empirical data, assuming normality. 
-
+In this step, we are going to generate a 95% confidence interval from the empirical data, assuming normality.
 
 ```{r}
 # Calculate the sample mean and standard deviation
@@ -696,8 +653,7 @@ upper_bound <- sample_mean + margin_of_error
 print(paste("95% Confidence Interval (assuming normality): [", round(lower_bound, 2), ",", round(upper_bound, 2), "]"))
 ```
 
-
-The interval shown above indicates that we can be 95% confident that the true population mean of the shifted LotArea variable falls within this range.  
+The interval shown above indicates that we can be 95% confident that the true population mean of the shifted LotArea variable falls within this range.
 
 Now, we are going to provide the empirical 5th percentile and 95th percentile of the data.
 
@@ -713,16 +669,13 @@ print(paste("Empirical 5th percentile:", empirical_5th_percentile))
 print(paste("Empirical 95th percentile:", empirical_95th_percentile))
 ```
 
+-   The empirical 5th percentile of the data is 4612.7 $ft^2$, which indicates that 5% of the houses in the dataset have a lot area of 4612.7 square feet or smaller.
 
-- The empirical 5th percentile of the data is 4612.7 $ft^2$, which indicates that 5% of the houses in the dataset have a lot area of 4612.7 square feet or smaller.
-
-- The empirical 95th percentile of the data is 18702.15 $ft^2$, this indicates that 95% of the houses in the dataset have a lot area of 18702.15 square feet or smaller.
-
+-   The empirical 95th percentile of the data is 18702.15 $ft^2$, this indicates that 95% of the houses in the dataset have a lot area of 18702.15 square feet or smaller.
 
 Lot area plays a significant role in determining the sale price of houses, but its impact is influenced by various factors. So, we will perform regression modeling to check the influence of other variables of the data in Sale Price.
 
 ## Regression Model:
-
 
 ```{r echo=FALSE, results='hide', message=FALSE}
 # Create a new graphics device with larger dimensions
@@ -731,9 +684,7 @@ pairs(numerical_data, gap = 0.5)
 dev.off()  # Close the graphics device after plotting
 ```
 
-
 ### Identifying Potential Predictors:
-
 
 Let's compute the correlation matrix for the entire subset that includes only the numerical variables:
 
@@ -780,11 +731,9 @@ ggplot(correlation_long, aes(Var1, Var2, fill = value)) +
             aes(Var1, Var2), fill = "black", color = "black")
 ```
 
-
 This is hare to read, let's split the numerical data into subset and plot the heat map of the variables against the SalePrice:
 
 The error that occurs after running the code above (for creating a heat map, the code was hidden to minimize the amount of code displayed in this R Markdown document.) indicates that there maybe row names that are duplicated, also the standard deviation is zero suggests that there are some variables that might have constant value across all observations. Let's fix this by also handling if there is any missing data, then re-run the code:
-
 
 ```{r}
 # Check for duplicate variable names
@@ -796,7 +745,6 @@ if (any(duplicated_names)) {
   names(numerical_data)[duplicated_names] <- make.unique(names(numerical_data)[duplicated_names])
 }
 ```
-
 
 ```{r}
 # Identify constant variables
@@ -829,9 +777,7 @@ if (any(missing_values)) {
 }
 ```
 
-
 Based on the output above, the constant value issue was resolved. Also, there are three variables that have missing values, let's handle them by replacing them with the mean:
-
 
 ```{r}
 # Impute missing values with mean
@@ -853,7 +799,6 @@ if (any(missing_values)) {
 }
 ```
 
-
 ```{r echo=TRUE, results='hide'}
 #Calculate the correlation matrix again after handling the missing data and the constant values
 correlation_matrix_New <- cor(numerical_data)
@@ -873,11 +818,9 @@ Full_model <- lm(SalePrice ~ ., data = numerical_data)
 summary(Full_model)
 ```
 
-Based on the summary of the full regression model, the predictors that explain the Sale price are 'MSSubClass' (The building class), 'LotArea' (Lot size in square feet), 'OverallQual' (Overall material and finish quality), 'OverallCond' (Overall condition rating), 
-YearBuilt' (Original construction date), 'MasVnrArea' (Masonry veneer area in square feet), 'BsmtFinSF1' (Type 1 finished square feet), 'X1stFlrSF' (First Floor square feet), 'X2ndFlrSF' (Second floor square feet), 'BsmtFullBath' (Basement full bathrooms), 'BedroomAbvGr' (Number of bedrooms above ground), 'TotRmsAbvGrd' (Total rooms above grade (does not include bathrooms)), 'GarageCars' (Size of garage in car capacity), 'WoodDeckSF' (Wood deck area in square feet), and  'ScreenPorch' (Screen porch area in square feet).
+Based on the summary of the full regression model, the predictors that explain the Sale price are 'MSSubClass' (The building class), 'LotArea' (Lot size in square feet), 'OverallQual' (Overall material and finish quality), 'OverallCond' (Overall condition rating), YearBuilt' (Original construction date), 'MasVnrArea' (Masonry veneer area in square feet), 'BsmtFinSF1' (Type 1 finished square feet), 'X1stFlrSF' (First Floor square feet), 'X2ndFlrSF' (Second floor square feet), 'BsmtFullBath' (Basement full bathrooms), 'BedroomAbvGr' (Number of bedrooms above ground), 'TotRmsAbvGrd' (Total rooms above grade (does not include bathrooms)), 'GarageCars' (Size of garage in car capacity), 'WoodDeckSF' (Wood deck area in square feet), and 'ScreenPorch' (Screen porch area in square feet).
 
 Now, let’s perform the backward process elimination:
-
 
 ```{r}
 # Linear Model for the most significant predictors
@@ -902,11 +845,9 @@ while(any(coef(summary(half_full_model))[, 4] > 0.05)) {
 summary(half_full_model)
 ```
 
-
 ### Residual Analysis:
 
 #### Residuals vs. Fitted Values Plot
-
 
 ```{r}
 plot(fitted(half_full_model), residuals(half_full_model),
@@ -915,9 +856,9 @@ plot(fitted(half_full_model), residuals(half_full_model),
 abline(h = 0, col = "red")
 ```
 
-The residuals are not randomly scattered around 0; the relationship between the predictors and the response variable may not be purely linear. 
+The residuals are not randomly scattered around 0; the relationship between the predictors and the response variable may not be purely linear.
 
-#### Normal Q-Q Plot: 
+#### Normal Q-Q Plot:
 
 ```{r}
 qqnorm(residuals(half_full_model))
@@ -926,9 +867,7 @@ qqline(residuals(half_full_model))
 
 By looking at the tails of the Q-Q plot, they seem that they are curved, which indicates that the residuals are skewed; they are not symmetrically distributed around zero.
 
-
 #### Residuals vs. Predictor Plots
-
 
 ```{r echo=TRUE, message=FALSE}
 png("residual_plots.png", width = 800, height = 800)
@@ -941,13 +880,11 @@ for (predictor in names(half_full_model$model)[-1]) {
 dev.off()
 ```
 
-
 ![Residual Plots](/Users/salouadaouki/Desktop/Data605/residual_plots.png)
-
 
 Some of the plots show a pattern of vertical lines, that suggests that the residuals don't have constant vaiance.
 
-#### Scale-Location Plot: 
+#### Scale-Location Plot:
 
 ```{r}
 sqrt_abs_residuals <- sqrt(abs(residuals(half_full_model)))
@@ -957,17 +894,13 @@ plot(fitted(half_full_model), sqrt_abs_residuals,
 abline(h = 0, col = "red")
 ```
 
-The points are clustered in the range of [0e+00, 4e+05], this indicates that the spread of residuals is relatively consistent across most of the fitted values. The presence of outliers outside the range mentioned above suggests that there might be specific observations where the model's predictions are notably inaccurate. 
-
+The points are clustered in the range of [0e+00, 4e+05], this indicates that the spread of residuals is relatively consistent across most of the fitted values. The presence of outliers outside the range mentioned above suggests that there might be specific observations where the model's predictions are notably inaccurate.
 
 #### Residuals vs. Leverage Plot:
-
 
 ```{r}
 plot(half_full_model, which = 5)
 ```
-
-
 
 ## Predictions using linear model:
 
@@ -984,7 +917,6 @@ predictor_variables <- c("MSSubClass", "LotArea", "OverallQual", "OverallCond",
 subset_data <- numerical_data[, c("SalePrice", predictor_variables)]
 ```
 
-
 Now, let's predict the Sale Price using the predictors variables:
 
 ```{r}
@@ -1000,6 +932,7 @@ predictions <- data.frame(Id = new_Id, SalePrice = round(predicted_SalePrice, 0)
 # View the predicted SalePrice
 head(predictions)
 ```
+
 Let's export the predictions and submit it to Kaggle
 
 ```{r}
@@ -1020,7 +953,6 @@ write.csv(predictions, file = "predictions.csv", row.names = FALSE)
 ```{r}
 str(numerical_data)
 ```
-
 
 ## Exponential Model:
 
@@ -1047,16 +979,14 @@ The coefficient is equal to 1.00001 which indicates that the there is no strong 
 summary(exp_model)
 ```
 
-The values above suggest that LotArea is statistically significant in predicting LogSalePrice, as indicated by the low p-value (< 2.2e-16). However, the adjusted R-squared value (0.06557) indicates that the model explains only a small proportion of the variability (6.557%) in LogSalePrice, suggesting that other factors not included in the model may also influence SalePrice.
+The values above suggest that LotArea is statistically significant in predicting LogSalePrice, as indicated by the low p-value (\< 2.2e-16). However, the adjusted R-squared value (0.06557) indicates that the model explains only a small proportion of the variability (6.557%) in LogSalePrice, suggesting that other factors not included in the model may also influence SalePrice.
 
 Let's plot the results to compare the original response variable with the fitted values obtained from the exponential regression model.
-
 
 ```{r}
 # Plot the fitted values against the original response variable
 plot(numerical_data$SalePrice, exp(predict(exp_model)), xlab = "Original Response", ylab = "Fitted Response (Exponential)")
 ```
-
 
 ```{r Residual Analysis}
 # Perform residual analysis
@@ -1065,11 +995,9 @@ plot(fitted(exp_model), residuals(exp_model),
      main = "Residuals vs Fitted")
 ```
 
-
 It seems that the exponential model is not great model for the variables Let's try polynomial model and see what will get:
 
 ## Polynomial Model:
-
 
 ```{r}
 # Select predictors
@@ -1089,10 +1017,9 @@ poly_model <- lm(SalePrice ~ poly_matrix, data = numerical_data)
 summary(poly_model)
 ```
 
-
 ## Conclusion:
 
-***Using linear model at first*** shows that there are Several predictors that are statistically significant in predicting the sale price, as indicated by their low p-values (< 0.05). These predictors include 'OverallQual', 'OverallCond', 'YearBuilt', 'X1stFlrSF', 'X2ndFlrSF', 'BedroomAbvGr', 'TotRmsAbvGrd', 'GarageCars', 'WoodDeckSF', and 'ScreenPorch'. By looking at the coefficients, we can see the predictors that have bigger rate of change (or slope). For instance, a one-unit increase in OverallQual is associated with an estimated increase in the sale price of approximately $19,840. The adjusted R-squared in the summary also indicates that 80.6% of the variability in the sale price is explained by the predictors included in the model. This suggests that the model provides a reasonably good fit to the data. So the linear model can be used to predict the sale price of houses based on the values of the predictors included in the model. We can use this equation: 
+***Using linear model at first*** shows that there are Several predictors that are statistically significant in predicting the sale price, as indicated by their low p-values (\< 0.05). These predictors include 'OverallQual', 'OverallCond', 'YearBuilt', 'X1stFlrSF', 'X2ndFlrSF', 'BedroomAbvGr', 'TotRmsAbvGrd', 'GarageCars', 'WoodDeckSF', and 'ScreenPorch'. By looking at the coefficients, we can see the predictors that have bigger rate of change (or slope). For instance, a one-unit increase in OverallQual is associated with an estimated increase in the sale price of approximately \$19,840. The adjusted R-squared in the summary also indicates that 80.6% of the variability in the sale price is explained by the predictors included in the model. This suggests that the model provides a reasonably good fit to the data. So the linear model can be used to predict the sale price of houses based on the values of the predictors included in the model. We can use this equation:
 
 $$
 \begin{align}
@@ -1105,19 +1032,16 @@ SalePrice = &-8.552^{05} + 1.984^{04} \times OverallQual+ -1.905^{02} \times MSS
 \end{align}
 $$
 
-
 ***For the exponential model***, the coefficient of 'LotArea' is estimated to be $1.03 \times 10^{-5}$ which indicates that every one square foot increase in LotArea, the predicted natural logarithm of the sale price (LogSalePrice) increases by approximately $1.03 \times 10^{-5}$ units. The p-value ($<2.2 \times 10^{-16}$) suggests that there is a significant relationship between LotArea and LogSalePrice. However, the adjusted R-squared approximately 6.57% of the variability in LogSalePrice is explained by LotArea. While statistically significant. The model can be used to predict the natural logarithm of the LogSalePrice (**but not the sale price**) based on the value of LotArea. The following equation can be used to predict the sale price:
 
-$LogSalePrice  =  11.92 + 1.030^{-05} \times LotArea + \epsilon $
-
+\$LogSalePrice = 11.92 + 1.030\^{-05} \times LotArea + \epsilon \$
 
 ***For the polynomial model***, many of the predictors (the polynomial terms) have statistically significant coefficients, as indicated by the p-values ($< 0.05$). In other words, these terms have significant impact on predicting the sale price of the houses. The adjusted R-squared value of 0.8294 indicates that approximately 82.94% of the variability in the sale price is explained by the polynomial terms included in the model. This suggests s good fit of the data. This model can be also used to predict the sale price of houses based on the values of the polynomial terms included in the model.
 
+## Kaggle:
 
-```{r}
-write.csv(Train_df_subset, file = "/Users/salouadaouki/Desktop/Data605/Submission.csv", row.names = FALSE)
-```
+Please Find the image of my submission with my score and my profile in Kaggle:
 
+[![](images/Screenshot 2024-05-13 at 8.05.28 PM-02.png)](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/submissions#)
 
-
-
+[![](images/Screenshot 2024-05-13 at 8.11.07 PM.png)](https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/submissions#)
